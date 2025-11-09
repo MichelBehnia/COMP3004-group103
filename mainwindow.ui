@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1301</width>
+    <height>552</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QLabel" name="userRoleLabel">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>0</y>
+      <width>751</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QStackedWidget" name="stackedWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>70</y>
+      <width>1281</width>
+      <height>491</height>
+     </rect>
+    </property>
+    <property name="currentIndex">
+     <number>5</number>
+    </property>
+    <widget class="QWidget" name="page">
+     <widget class="QGroupBox" name="loginGroupBox">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>120</y>
+        <width>771</width>
+        <height>266</height>
+       </rect>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>400</width>
+        <height>150</height>
+       </size>
+      </property>
+      <property name="title">
+       <string/>
+      </property>
+      <widget class="QLineEdit" name="usernameLineEdit">
+       <property name="geometry">
+        <rect>
+         <x>200</x>
+         <y>100</y>
+         <width>351</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Enter username</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="loginButton">
+       <property name="geometry">
+        <rect>
+         <x>330</x>
+         <y>130</y>
+         <width>83</width>
+         <height>25</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Login</string>
+       </property>
+      </widget>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="page_2">
+     <widget class="QTableWidget" name="fictionTableWidget">
+      <property name="geometry">
+       <rect>
+        <x>160</x>
+        <y>20</y>
+        <width>951</width>
+        <height>401</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="page_3">
+     <widget class="QTableWidget" name="nonFictionTableWidget">
+      <property name="geometry">
+       <rect>
+        <x>180</x>
+        <y>20</y>
+        <width>951</width>
+        <height>401</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="page_4">
+     <widget class="QTableWidget" name="magazineTableWidget">
+      <property name="geometry">
+       <rect>
+        <x>160</x>
+        <y>20</y>
+        <width>951</width>
+        <height>401</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="page_5">
+     <widget class="QTableWidget" name="movieTableWidget">
+      <property name="geometry">
+       <rect>
+        <x>190</x>
+        <y>20</y>
+        <width>951</width>
+        <height>401</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="page_6">
+     <widget class="QTableWidget" name="videoGameTableWidget">
+      <property name="geometry">
+       <rect>
+        <x>180</x>
+        <y>20</y>
+        <width>951</width>
+        <height>401</height>
+       </rect>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="tableButtonGroupBox">
+    <property name="geometry">
+     <rect>
+      <x>380</x>
+      <y>40</y>
+      <width>541</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string/>
+    </property>
+    <widget class="QPushButton" name="videoGameButton">
+     <property name="geometry">
+      <rect>
+       <x>440</x>
+       <y>10</y>
+       <width>91</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Videogames</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="magazineButton">
+     <property name="geometry">
+      <rect>
+       <x>260</x>
+       <y>10</y>
+       <width>81</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Magazines</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="nonFictionButton">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>10</y>
+       <width>131</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Non-Fiction Books</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="fictionButton">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>101</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Fiction Books</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="movieButton">
+     <property name="geometry">
+      <rect>
+       <x>350</x>
+       <y>10</y>
+       <width>83</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Movies</string>
+     </property>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1301</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
