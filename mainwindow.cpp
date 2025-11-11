@@ -1,225 +1,558 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QTableWidgetItem>
 
+#include <QHeaderView>
+#include <QPushButton>
+#include <QAction>
+#include <QLabel>
+#include <QStackedWidget>
+#include <QTableWidgetItem>
+#include <QLineEdit>
+#include <QMessageBox>
+#include <algorithm>
+
+//small helpers local
+static QString condToString(ItemCondition c) {
+    switch (c) {
+    case ItemCondition::New:      return "New";
+    case ItemCondition::Standard: return "Standard";
+    case ItemCondition::Worn:     return "Worn";
+    }
+    return "Standard";
+}
+
+static QString statToString(ItemStatus s) {
+    switch (s) {
+    case ItemStatus::Available:  return "Available";
+    case ItemStatus::CheckedOut: return "Checked Out";
+    case ItemStatus::OnHold:     return "On Hold";
+    }
+    return "Available";
+}
+
+//find item by id
+static Item* findById(QVector<Item*>& catalogue, const QUuid& id) {
+    for (Item* it : catalogue) if (it->itemId == id) return it;
+    return nullptr;
+}
+
+//get child by name
+template <typename T>
+T* get(QObject* root, const char* name) {
+    return root ? root->findChild<T*>(name) : nullptr;
+}
+
+//set label text if exists
+static void setTextIf(QLabel* lbl, const QString& s) { if (lbl) lbl->setText(s); }
+
+//mainwindow
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::MainWindow) {
+    : QMainWindow(parent), ui(new Ui::MainWindow)
+{
     ui->setupUi(this);
 
+    //seed users
     patrons.append(Patron("michel"));
     patrons.append(Patron("eddie"));
     patrons.append(Patron("joseph"));
     patrons.append(Patron("andrey"));
     patrons.append(Patron("bob"));
+
     librarians.append(Librarian("lauren"));
     systemAdmins.append(SystemAdmin("adam"));
 
+    //demo fines
+    if (!patrons.isEmpty()) patrons[0].outstandingFines = 0;
+
+    //seed catalogue
     catalogue.append(new FictionBook("To Kill a Mockingbird", "Harper Lee", 1960, "Hardcover", ItemCondition::Standard, "978-0-06-112008-4"));
     catalogue.append(new FictionBook("1984", "George Orwell", 1949, "Paperback", ItemCondition::Worn, "978-0-452-28423-4"));
     catalogue.append(new FictionBook("Pride and Prejudice", "Jane Austen", 1813, "Hardcover", ItemCondition::New, "978-0-19-280238-5"));
     catalogue.append(new FictionBook("Moby Dick", "Herman Melville", 1851, "Paperback", ItemCondition::Worn, "978-0-14-243724-7"));
     catalogue.append(new FictionBook("The Hobbit", "J.R.R. Tolkien", 1937, "Hardcover", ItemCondition::Standard, "978-0-618-00221-3"));
+
     catalogue.append(new NonFictionBook("Sapiens: A Brief History of Humankind", "Yuval Noah Harari", 2011, "Paperback", ItemCondition::Standard, "978-0-06-231609-7", "909"));
     catalogue.append(new NonFictionBook("The Selfish Gene", "Richard Dawkins", 1976, "Paperback", ItemCondition::New, "978-0-19-878860-7", "576"));
     catalogue.append(new NonFictionBook("The Immortal Life of Henrietta Lacks", "Rebecca Skloot", 2010, "Hardcover", ItemCondition::Worn, "978-1-4000-5217-2", "616"));
     catalogue.append(new NonFictionBook("A Short History of Nearly Everything", "Bill Bryson", 2003, "Paperback", ItemCondition::Standard, "978-0-385-66094-5", "500"));
     catalogue.append(new NonFictionBook("Thinking, Fast and Slow", "Daniel Kahneman", 2011, "Hardcover", ItemCondition::Worn, "978-0-374-53355-7", "153.4"));
+
     catalogue.append(new Movie("Inception", "Christopher Nolan", 2010, "Blu-ray", ItemCondition::Standard, "Sci-fi", 8));
     catalogue.append(new Movie("The Godfather", "Francis Ford Coppola", 1972, "DVD", ItemCondition::New, "Crime", 10));
     catalogue.append(new Movie("Forrest Gump", "Robert Zemeckis", 1994, "Blu-ray", ItemCondition::Worn, "Drama", 9));
+
+    catalogue.append(new VideoGame("The Legend of Zelda", "Nintendo", 1986, "Cartridge", ItemCondition::Worn, "NES", "Adventure"));
+    catalogue.append(new VideoGame("Super Mario Bros.", "Nintendo", 1985, "Cartridge", ItemCondition::Standard, "NES", "Platformer"));
+    catalogue.append(new VideoGame("Halo: Combat Evolved", "Bungie", 2001, "Disc", ItemCondition::Standard, "Xbox", "Shooter"));
+    catalogue.append(new VideoGame("Minecraft", "Mojang", 2011, "Digital", ItemCondition::New, "PC", "Sandbox"));
+
     catalogue.append(new Magazine("National Geographic", "NG Society", 2023, "Print", ItemCondition::New, 5, QDate(2023, 5, 1)));
     catalogue.append(new Magazine("Time", "Time Inc.", 2023, "Print", ItemCondition::Standard, 15, QDate(2023, 4, 15)));
     catalogue.append(new Magazine("The Economist", "The Economist Group", 2023, "Print", ItemCondition::Worn, 22, QDate(2023, 5, 8)));
-    catalogue.append(new VideoGame("The Legend of Zelda", "Nintendo", 1986, "Cartridge", ItemCondition::Worn, "Adventure", 9));
-    catalogue.append(new VideoGame("Super Mario Bros.", "Nintendo", 1985, "Cartridge", ItemCondition::Standard, "Platformer", 8));
-    catalogue.append(new VideoGame("Halo: Combat Evolved", "Bungie", 2001, "Disc", ItemCondition::Standard, "Shooter", 9));
-    catalogue.append(new VideoGame("Minecraft", "Mojang", 2011, "Digital", ItemCondition::New, "Sandbox", 10));
 
-    ui->stackedWidget->setCurrentIndex(0);
-    ui->tableButtonGroupBox->hide();
+    //cache widgets
+    auto* stacked = get<QStackedWidget>(this, "stackedWidget");
+    auto* tableButtons = get<QWidget>(this, "tableButtonGroupBox");
 
-    connect(ui->fictionButton,     &QPushButton::clicked, [this]() { ui->stackedWidget->setCurrentIndex(1); });
-    connect(ui->nonFictionButton,  &QPushButton::clicked, [this]() { ui->stackedWidget->setCurrentIndex(2); });
-    connect(ui->magazineButton,    &QPushButton::clicked, [this]() { ui->stackedWidget->setCurrentIndex(3); });
-    connect(ui->movieButton,       &QPushButton::clicked, [this]() { ui->stackedWidget->setCurrentIndex(4); });
-    connect(ui->videoGameButton,   &QPushButton::clicked, [this]() { ui->stackedWidget->setCurrentIndex(5); });
+    //initial page
+    if (stacked) stacked->setCurrentIndex(0);
 
-    connect(ui->loginButton, &QPushButton::clicked, this, &MainWindow::onLoginButtonClicked);
+    //hide table buttons
+    if (tableButtons) tableButtons->hide();
+
+    //page nav buttons
+    if (auto* b = get<QPushButton>(this, "fictionButton"))
+        connect(b, &QPushButton::clicked, this, [this, stacked]() { if (stacked) stacked->setCurrentIndex(1); }, Qt::UniqueConnection);
+    if (auto* b = get<QPushButton>(this, "nonFictionButton"))
+        connect(b, &QPushButton::clicked, this, [this, stacked]() { if (stacked) stacked->setCurrentIndex(2); }, Qt::UniqueConnection);
+    if (auto* b = get<QPushButton>(this, "magazineButton"))
+        connect(b, &QPushButton::clicked, this, [this, stacked]() { if (stacked) stacked->setCurrentIndex(3); }, Qt::UniqueConnection);
+    if (auto* b = get<QPushButton>(this, "movieButton"))
+        connect(b, &QPushButton::clicked, this, [this, stacked]() { if (stacked) stacked->setCurrentIndex(4); }, Qt::UniqueConnection);
+    if (auto* b = get<QPushButton>(this, "videoGameButton"))
+        connect(b, &QPushButton::clicked, this, [this, stacked]() { if (stacked) stacked->setCurrentIndex(5); }, Qt::UniqueConnection);
+
+    //login wiring
+    if (auto* loginBtn = get<QPushButton>(this, "loginButton")) {
+        connect(loginBtn, &QPushButton::clicked, this, [this, stacked, tableButtons]() {
+            const auto* userEdit = get<QLineEdit>(this, "usernameLineEdit");
+            const QString username = userEdit ? userEdit->text().trimmed() : QString();
+
+            bool found = false;
+            QString role;
+
+            for (int i = 0; i < patrons.size(); ++i) {
+                if (patrons[i].name == username) { found = true; role = "Patron"; currentPatronIndex = i; break; }
+            }
+            if (!found) for (const Librarian& l : librarians)  if (l.name == username) { found = true; role = "Librarian"; break; }
+            if (!found) for (const SystemAdmin& a : systemAdmins) if (a.name == username) { found = true; role = "Admin"; break; }
+
+            auto* roleLbl = get<QLabel>(this, "userRoleLabel");
+            if (!found) { setTextIf(roleLbl, "Invalid username"); return; }
+
+            setTextIf(roleLbl, username + ": " + role);
+            if (tableButtons) tableButtons->show();
+
+            populateFictionTable();
+            populateNonFictionTable();
+            populateMagazineTable();
+            populateMovieTable();
+            populateVideoGameTable();
+
+            //enable double click borrow
+            hookDoubleClickBorrow();
+
+            //do not reconnect borrow buttons
+
+            if (stacked) stacked->setCurrentIndex(1);
+        }, Qt::UniqueConnection);
+    }
+
+    //account status hooks
+    if (auto* b = get<QPushButton>(this, "accountStatusButton"))
+        connect(b, &QPushButton::clicked, this, &MainWindow::on_accountStatusButton_clicked, Qt::UniqueConnection);
+    if (auto* a = get<QAction>(this, "actionAccount_Status"))
+        connect(a, &QAction::triggered, this, &MainWindow::on_actionAccount_Status_triggered, Qt::UniqueConnection);
+    if (auto* a = get<QAction>(this, "actionUnborrow"))
+        connect(a, &QAction::triggered, this, &MainWindow::on_actionUnborrow_triggered, Qt::UniqueConnection);
+    if (auto* b = get<QPushButton>(this, "backFromAccountButton"))
+        connect(b, &QPushButton::clicked, this, &MainWindow::on_backFromAccountButton_clicked, Qt::UniqueConnection);
 }
 
 MainWindow::~MainWindow() {
-    for (Item* item : catalogue) {
-        delete item;
-    }
+    for (Item* item : catalogue) delete item;
     delete ui;
 }
 
-void MainWindow::populateFictionTable() {
-    ui->fictionTableWidget->clear();
-    ui->fictionTableWidget->setColumnCount(6);
-    ui->fictionTableWidget->setHorizontalHeaderLabels({"Title", "Author", "Year", "Format", "Condition", "ISBN"});
-    int row = 0;
-    ui->fictionTableWidget->setRowCount(0);
-    for (Item* item : catalogue) {
-        if (auto* fb = dynamic_cast<FictionBook*>(item)) {
-            ui->fictionTableWidget->insertRow(row);
-            ui->fictionTableWidget->setItem(row, 0, new QTableWidgetItem(fb->title));
-            ui->fictionTableWidget->setItem(row, 1, new QTableWidgetItem(fb->creator));
-            ui->fictionTableWidget->setItem(row, 2, new QTableWidgetItem(QString::number(fb->publicationYear)));
-            ui->fictionTableWidget->setItem(row, 3, new QTableWidgetItem(fb->format));
-            ui->fictionTableWidget->setItem(row, 4, new QTableWidgetItem(
-                fb->condition == ItemCondition::New ? "New" :
-                fb->condition == ItemCondition::Standard ? "Standard" : "Worn"));
-            ui->fictionTableWidget->setItem(row, 5, new QTableWidgetItem(fb->ISBN));
-            ++row;
-        }
-    }
-    ui->fictionTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+//qt slots
+void MainWindow::on_tabWidget_currentChanged(int /*index*/) {
+    //no op
 }
 
-void MainWindow::populateNonFictionTable() {
-    ui->nonFictionTableWidget->clear();
-    ui->nonFictionTableWidget->setColumnCount(7);
-    ui->nonFictionTableWidget->setHorizontalHeaderLabels({"Title", "Author", "Year", "Format", "Condition", "ISBN", "Dewey"});
-    int row = 0;
-    ui->nonFictionTableWidget->setRowCount(0);
-    for (Item* item : catalogue) {
-        if (auto* nf = dynamic_cast<NonFictionBook*>(item)) {
-            ui->nonFictionTableWidget->insertRow(row);
-            ui->nonFictionTableWidget->setItem(row, 0, new QTableWidgetItem(nf->title));
-            ui->nonFictionTableWidget->setItem(row, 1, new QTableWidgetItem(nf->creator));
-            ui->nonFictionTableWidget->setItem(row, 2, new QTableWidgetItem(QString::number(nf->publicationYear)));
-            ui->nonFictionTableWidget->setItem(row, 3, new QTableWidgetItem(nf->format));
-            ui->nonFictionTableWidget->setItem(row, 4, new QTableWidgetItem(
-                nf->condition == ItemCondition::New ? "New" :
-                nf->condition == ItemCondition::Standard ? "Standard" : "Worn"));
-            ui->nonFictionTableWidget->setItem(row, 5, new QTableWidgetItem(nf->ISBN));
-            ui->nonFictionTableWidget->setItem(row, 6, new QTableWidgetItem(nf->deweyDecimal));
-            ++row;
-        }
-    }
-    ui->nonFictionTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+void MainWindow::on_accountStatusButton_clicked() {
+    showAccountStatusPage();
 }
 
-void MainWindow::populateMagazineTable() {
-    ui->magazineTableWidget->clear();
-    ui->magazineTableWidget->setColumnCount(7);
-    ui->magazineTableWidget->setHorizontalHeaderLabels(
-        {"Title", "Publisher", "Year", "Format", "Condition", "Issue", "Pub Date"});
-    int row = 0;
-    ui->magazineTableWidget->setRowCount(0);
-    for (Item* item : catalogue) {
-        if (auto* mag = dynamic_cast<Magazine*>(item)) {
-            ui->magazineTableWidget->insertRow(row);
-            ui->magazineTableWidget->setItem(row, 0, new QTableWidgetItem(mag->title));
-            ui->magazineTableWidget->setItem(row, 1, new QTableWidgetItem(mag->creator));
-            ui->magazineTableWidget->setItem(row, 2, new QTableWidgetItem(QString::number(mag->publicationYear)));
-            ui->magazineTableWidget->setItem(row, 3, new QTableWidgetItem(mag->format));
-            ui->magazineTableWidget->setItem(row, 4, new QTableWidgetItem(
-                mag->condition == ItemCondition::New ? "New" :
-                mag->condition == ItemCondition::Standard ? "Standard" : "Worn"));
-            ui->magazineTableWidget->setItem(row, 5, new QTableWidgetItem(QString::number(mag->issueNumber)));
-            ui->magazineTableWidget->setItem(row, 6, new QTableWidgetItem(mag->publicationDate.toString()));
-            ++row;
-        }
-    }
-    ui->magazineTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+void MainWindow::on_actionAccount_Status_triggered() {
+    showAccountStatusPage();
 }
 
-void MainWindow::populateMovieTable() {
-    ui->movieTableWidget->clear();
-    ui->movieTableWidget->setColumnCount(7);
-    ui->movieTableWidget->setHorizontalHeaderLabels(
-        {"Title", "Director", "Year", "Format", "Condition", "Genre", "Rating"});
-    int row = 0;
-    ui->movieTableWidget->setRowCount(0);
-    for (Item* item : catalogue) {
-        if (auto* mov = dynamic_cast<Movie*>(item)) {
-            ui->movieTableWidget->insertRow(row);
-            ui->movieTableWidget->setItem(row, 0, new QTableWidgetItem(mov->title));
-            ui->movieTableWidget->setItem(row, 1, new QTableWidgetItem(mov->creator));
-            ui->movieTableWidget->setItem(row, 2, new QTableWidgetItem(QString::number(mov->publicationYear)));
-            ui->movieTableWidget->setItem(row, 3, new QTableWidgetItem(mov->format));
-            ui->movieTableWidget->setItem(row, 4, new QTableWidgetItem(
-                mov->condition == ItemCondition::New ? "New"
-                : mov->condition == ItemCondition::Standard ? "Standard" : "Worn"));
-            ui->movieTableWidget->setItem(row, 5, new QTableWidgetItem(mov->genre));
-            ui->movieTableWidget->setItem(row, 6, new QTableWidgetItem(QString::number(mov->rating)));
-            ++row;
-        }
-    }
-    ui->movieTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+void MainWindow::on_backFromAccountButton_clicked() {
+    if (auto* stacked = get<QStackedWidget>(this, "stackedWidget"))
+        stacked->setCurrentIndex(1);
 }
 
-void MainWindow::populateVideoGameTable() {
-    ui->videoGameTableWidget->clear();
-    ui->videoGameTableWidget->setColumnCount(7);
-    ui->videoGameTableWidget->setHorizontalHeaderLabels(
-        {"Title", "Studio", "Year", "Format", "Condition", "Genre", "Rating"});
-    int row = 0;
-    ui->videoGameTableWidget->setRowCount(0);
-    for (Item* item : catalogue) {
-        if (auto* vg = dynamic_cast<VideoGame*>(item)) {
-            ui->videoGameTableWidget->insertRow(row);
-            ui->videoGameTableWidget->setItem(row, 0, new QTableWidgetItem(vg->title));
-            ui->videoGameTableWidget->setItem(row, 1, new QTableWidgetItem(vg->creator));
-            ui->videoGameTableWidget->setItem(row, 2, new QTableWidgetItem(QString::number(vg->publicationYear)));
-            ui->videoGameTableWidget->setItem(row, 3, new QTableWidgetItem(vg->format));
-            ui->videoGameTableWidget->setItem(row, 4, new QTableWidgetItem(
-                vg->condition == ItemCondition::New ? "New"
-                : vg->condition == ItemCondition::Standard ? "Standard" : "Worn"));
-            ui->videoGameTableWidget->setItem(row, 5, new QTableWidgetItem(vg->genre));
-            ui->videoGameTableWidget->setItem(row, 6, new QTableWidgetItem(QString::number(vg->rating)));
-            ++row;
-        }
+//borrow button slot
+void MainWindow::on_borrowSelectedButton_clicked() {
+    if (QTableWidget* t = currentTable()) {
+        int row = t->currentRow();
+        if (row >= 0) borrowFromRow(t, row);
     }
-    ui->videoGameTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 }
 
-void MainWindow::onLoginButtonClicked() {
-    QString username = ui->usernameLineEdit->text().trimmed();
-
-    bool found = false;
-    QString role;
-
-    for (const Patron &p : patrons) {
-        if (p.username == username) {
-            found = true;
-            role = "Patron";
-            break;
-        }
+//unborrow button slot
+void MainWindow::on_unborrowSelectedButton_clicked() {
+    if (QTableWidget* t = currentTable()) {
+        int row = t->currentRow();
+        if (row >= 0) returnFromRow(t, row);
     }
-    if (!found) {
-        for (const Librarian &l : librarians) {
-            if (l.username == username) {
-                found = true;
-                role = "Librarian";
-                break;
-            }
-        }
+}
+
+//unborrow action slot
+void MainWindow::on_actionUnborrow_triggered() {
+    if (QTableWidget* t = currentTable()) {
+        int row = t->currentRow();
+        if (row >= 0) returnFromRow(t, row);
     }
-    if (!found) {
-        for (const SystemAdmin &a : systemAdmins) {
-            if (a.username == username) {
-                found = true;
-                role = "Admin";
-                break;
-            }
-        }
+}
+
+//borrowing helpers
+QTableWidget* MainWindow::currentTable() const {
+    auto* stacked = get<QStackedWidget>(const_cast<MainWindow*>(this), "stackedWidget");
+    if (!stacked) return nullptr;
+    const int idx = stacked->currentIndex();
+    switch (idx) {
+    case 1: return get<QTableWidget>(const_cast<MainWindow*>(this), "fictionTableWidget");
+    case 2: return get<QTableWidget>(const_cast<MainWindow*>(this), "nonFictionTableWidget");
+    case 3: return get<QTableWidget>(const_cast<MainWindow*>(this), "magazineTableWidget");
+    case 4: return get<QTableWidget>(const_cast<MainWindow*>(this), "movieTableWidget");
+    case 5: return get<QTableWidget>(const_cast<MainWindow*>(this), "videoGameTableWidget");
+    default: return nullptr;
+    }
+}
+
+QUuid MainWindow::idForRow(QTableWidget* table, int row) const {
+    if (!table || row < 0 || row >= table->rowCount()) return {};
+    QTableWidgetItem* it = table->item(row, 0);
+    if (!it) return {};
+    const QString idStr = it->data(Qt::UserRole).toString();
+    return QUuid(idStr);
+}
+
+bool MainWindow::borrowById(const QUuid& id, QString* err) {
+    Patron* p = currentPatron();
+    if (!p) { if (err) *err = "No patron logged in."; return false; }
+
+    Item* it = findById(catalogue, id);
+    if (!it) { if (err) *err = "Item not found."; return false; }
+
+    if (it->status != ItemStatus::Available) {
+        if (err) *err = "Item is not available.";
+        return false;
+    }
+    if (patronHasLoan(*p, id)) {
+        if (err) *err = "You already borrowed this item.";
+        return false;
+    }
+    if (p->activeLoans.size() >= 3) {
+        if (err) *err = "Max 3 active loans reached (D1).";
+        return false;
     }
 
-    if (!found) {
-        ui->userRoleLabel->setText("Invalid username");
-        return;
-    }
+    it->status  = ItemStatus::CheckedOut;
+    it->dueDate = QDate::currentDate().addDays(14); //d1 rule
+    p->activeLoans.push_back(id);
+    if (err) *err = "Borrowed successfully.";
+    return true;
+}
 
-    ui->userRoleLabel->setText(username + ": " + role);
-    ui->tableButtonGroupBox->show();
+void MainWindow::borrowFromRow(QTableWidget* table, int row) {
+    if (!table) return;
+    QString msg;
+    const QUuid id = idForRow(table, row);
+    if (id.isNull()) return;
 
+    const bool ok = borrowById(id, &msg);
+    Q_UNUSED(ok);
+
+    //refresh tables and account
     populateFictionTable();
     populateNonFictionTable();
     populateMagazineTable();
     populateMovieTable();
     populateVideoGameTable();
-    ui->stackedWidget->setCurrentIndex(1);
+    populateAccountStatus();
+
+    if (!msg.isEmpty()) statusBar()->showMessage(msg, 3000);
+
+    if (row >= 0 && row < table->rowCount()) table->setCurrentCell(row, 0);
+}
+
+void MainWindow::hookDoubleClickBorrow() {
+    auto hook = [this](QTableWidget* t) {
+        if (!t) return;
+        if (!t->property("borrowHooked").toBool()) {
+            QObject::connect(t, &QTableWidget::cellDoubleClicked, this,
+                             [this, t](int r, int /*c*/) { borrowFromRow(t, r); },
+                             Qt::UniqueConnection);
+            t->setProperty("borrowHooked", true);
+        }
+    };
+    hook(get<QTableWidget>(this, "fictionTableWidget"));
+    hook(get<QTableWidget>(this, "nonFictionTableWidget"));
+    hook(get<QTableWidget>(this, "magazineTableWidget"));
+    hook(get<QTableWidget>(this, "movieTableWidget"));
+    hook(get<QTableWidget>(this, "videoGameTableWidget"));
+}
+
+//return helpers
+bool MainWindow::returnById(const QUuid& id, QString* err) {
+    Patron* p = currentPatron();
+    if (!p) { if (err) *err = "No patron logged in."; return false; }
+
+    Item* it = findById(catalogue, id);
+    if (!it) { if (err) *err = "Item not found."; return false; }
+
+    //must be checked out by this patron
+    auto itPos = std::find(p->activeLoans.begin(), p->activeLoans.end(), id);
+    if (it->status != ItemStatus::CheckedOut || itPos == p->activeLoans.end()) {
+        if (err) *err = "You don't have this item on loan.";
+        return false;
+    }
+
+    //return item
+    p->activeLoans.erase(itPos);
+    it->status = ItemStatus::Available;
+    it->dueDate = QDate(); //clear date
+
+    if (err) *err = "Returned successfully.";
+    return true;
+}
+
+void MainWindow::returnFromRow(QTableWidget* table, int row) {
+    if (!table) return;
+    QString msg;
+    const QUuid id = idForRow(table, row);
+    if (id.isNull()) return;
+
+    const bool ok = returnById(id, &msg);
+    Q_UNUSED(ok);
+
+    //refresh tables and account
+    populateFictionTable();
+    populateNonFictionTable();
+    populateMagazineTable();
+    populateMovieTable();
+    populateVideoGameTable();
+    populateAccountStatus();
+
+    if (!msg.isEmpty()) statusBar()->showMessage(msg, 3000);
+
+    if (row >= 0 && row < table->rowCount())
+        table->setCurrentCell(std::min(row, table->rowCount() - 1), 0);
+}
+
+//account status page
+void MainWindow::showAccountStatusPage() {
+    populateAccountStatus();
+
+    auto* stacked = get<QStackedWidget>(this, "stackedWidget");
+    QWidget* accPage = get<QWidget>(this, "accountStatusPage");
+    if (!accPage) accPage = get<QWidget>(this, "accountPage");
+
+    if (stacked && accPage) {
+        int idx = stacked->indexOf(accPage);
+        if (idx >= 0) stacked->setCurrentIndex(idx);
+    }
+}
+
+void MainWindow::populateAccountStatus() {
+    const Patron* p = currentPatron();
+    if (!p) return;
+
+    setTextIf(get<QLabel>(this, "accountNameLabel"), p->name);
+    if (auto* role = get<QLabel>(this, "accountRoleLabel")) role->setText("Patron");
+    else if (auto* role2 = get<QLabel>(this, "accountTitleLabel")) role2->setText("Patron");
+
+    if (auto* fines = get<QLabel>(this, "finesValueLabel"))
+        fines->setText(QString("$%1").arg(QString::number(p->outstandingFines, 'f', 2)));
+
+    //loans table
+    if (auto* t = get<QTableWidget>(this, "loansTableWidget")) {
+        t->clear();
+        t->setRowCount(0);
+        t->setColumnCount(5);
+        t->setHorizontalHeaderLabels({"Title", "Type", "Status", "Due", "Condition"});
+        int row = 0;
+        for (const QUuid& id : p->activeLoans) {
+            if (Item* it = findById(catalogue, id)) {
+                t->insertRow(row);
+                t->setItem(row, 0, new QTableWidgetItem(it->title));
+                t->setItem(row, 1, new QTableWidgetItem(it->typeName()));
+                t->setItem(row, 2, new QTableWidgetItem(statToString(it->status)));
+                t->setItem(row, 3, new QTableWidgetItem(it->dueDate.isValid() ? it->dueDate.toString() : "-"));
+                t->setItem(row, 4, new QTableWidgetItem(condToString(it->condition)));
+                ++row;
+            }
+        }
+        t->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    }
+
+    //holds table
+    if (auto* t = get<QTableWidget>(this, "holdsTableWidget")) {
+        t->clear();
+        t->setRowCount(0);
+        t->setColumnCount(3);
+        t->setHorizontalHeaderLabels({"Title", "Type", "Status"});
+        int row = 0;
+        for (const QUuid& id : p->activeHolds) {
+            if (Item* it = findById(catalogue, id)) {
+                t->insertRow(row);
+                t->setItem(row, 0, new QTableWidgetItem(it->title));
+                t->setItem(row, 1, new QTableWidgetItem(it->typeName()));
+                t->setItem(row, 2, new QTableWidgetItem(statToString(it->status)));
+                ++row;
+            }
+        }
+        t->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    }
+}
+
+//current patron helpers
+Patron* MainWindow::currentPatron() {
+    if (currentPatronIndex < 0 || currentPatronIndex >= patrons.size()) return nullptr;
+    return &patrons[currentPatronIndex];
+}
+const Patron* MainWindow::currentPatron() const {
+    if (currentPatronIndex < 0 || currentPatronIndex >= patrons.size()) return nullptr;
+    return &patrons[currentPatronIndex];
+}
+
+//string helpers
+QString MainWindow::conditionToString(ItemCondition c) const { return condToString(c); }
+QString MainWindow::statusToString(ItemStatus s) const { return statToString(s); }
+
+//patron query helpers
+bool MainWindow::patronHasLoan(const Patron& p, const QUuid& id) const {
+    return std::any_of(p.activeLoans.begin(), p.activeLoans.end(),
+                       [&](const QUuid& x){ return x == id; });
+}
+bool MainWindow::patronHasHold(const Patron& p, const QUuid& id) const {
+    return std::any_of(p.activeHolds.begin(), p.activeHolds.end(),
+                       [&](const QUuid& x){ return x == id; });
+}
+
+//populate tables
+void MainWindow::populateFictionTable() {
+    if (auto* t = get<QTableWidget>(this, "fictionTableWidget")) {
+        t->clear();
+        t->setColumnCount(6);
+        t->setHorizontalHeaderLabels({"Title", "Author", "Year", "Format", "Condition", "ISBN"});
+        t->setRowCount(0);
+        int row = 0;
+        for (Item* item : catalogue) {
+            if (auto* fb = dynamic_cast<FictionBook*>(item)) {
+                t->insertRow(row);
+                t->setItem(row, 0, new QTableWidgetItem(fb->title));
+                t->item(row, 0)->setData(Qt::UserRole, fb->itemId.toString());
+                t->setItem(row, 1, new QTableWidgetItem(fb->creator));
+                t->setItem(row, 2, new QTableWidgetItem(QString::number(fb->publicationYear)));
+                t->setItem(row, 3, new QTableWidgetItem(fb->format));
+                t->setItem(row, 4, new QTableWidgetItem(condToString(fb->condition)));
+                t->setItem(row, 5, new QTableWidgetItem(fb->isbn));
+                ++row;
+            }
+        }
+        t->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    }
+}
+
+void MainWindow::populateNonFictionTable() {
+    if (auto* t = get<QTableWidget>(this, "nonFictionTableWidget")) {
+        t->clear();
+        t->setColumnCount(7);
+        t->setHorizontalHeaderLabels({"Title", "Author", "Year", "Format", "Condition", "ISBN", "Dewey"});
+        t->setRowCount(0);
+        int row = 0;
+        for (Item* item : catalogue) {
+            if (auto* nf = dynamic_cast<NonFictionBook*>(item)) {
+                t->insertRow(row);
+                t->setItem(row, 0, new QTableWidgetItem(nf->title));
+                t->item(row, 0)->setData(Qt::UserRole, nf->itemId.toString());
+                t->setItem(row, 1, new QTableWidgetItem(nf->creator));
+                t->setItem(row, 2, new QTableWidgetItem(QString::number(nf->publicationYear)));
+                t->setItem(row, 3, new QTableWidgetItem(nf->format));
+                t->setItem(row, 4, new QTableWidgetItem(condToString(nf->condition)));
+                t->setItem(row, 5, new QTableWidgetItem(nf->isbn));
+                t->setItem(row, 6, new QTableWidgetItem(nf->deweyClass));
+                ++row;
+            }
+        }
+        t->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    }
+}
+
+void MainWindow::populateMagazineTable() {
+    if (auto* t = get<QTableWidget>(this, "magazineTableWidget")) {
+        t->clear();
+        t->setColumnCount(7);
+        t->setHorizontalHeaderLabels({"Title", "Publisher", "Year", "Format", "Condition", "Issue", "Pub Date"});
+        t->setRowCount(0);
+        int row = 0;
+        for (Item* item : catalogue) {
+            if (auto* mag = dynamic_cast<Magazine*>(item)) {
+                t->insertRow(row);
+                t->setItem(row, 0, new QTableWidgetItem(mag->title));
+                t->item(row, 0)->setData(Qt::UserRole, mag->itemId.toString());
+                t->setItem(row, 1, new QTableWidgetItem(mag->creator));
+                t->setItem(row, 2, new QTableWidgetItem(QString::number(mag->publicationYear)));
+                t->setItem(row, 3, new QTableWidgetItem(mag->format));
+                t->setItem(row, 4, new QTableWidgetItem(condToString(mag->condition)));
+                t->setItem(row, 5, new QTableWidgetItem(QString::number(mag->issueNumber)));
+                t->setItem(row, 6, new QTableWidgetItem(mag->publicationDate.toString()));
+                ++row;
+            }
+        }
+        t->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    }
+}
+
+void MainWindow::populateMovieTable() {
+    if (auto* t = get<QTableWidget>(this, "movieTableWidget")) {
+        t->clear();
+        t->setColumnCount(7);
+        t->setHorizontalHeaderLabels({"Title", "Director", "Year", "Format", "Condition", "Genre", "Rating"});
+        t->setRowCount(0);
+        int row = 0;
+        for (Item* item : catalogue) {
+            if (auto* mov = dynamic_cast<Movie*>(item)) {
+                t->insertRow(row);
+                t->setItem(row, 0, new QTableWidgetItem(mov->title));
+                t->item(row, 0)->setData(Qt::UserRole, mov->itemId.toString());
+                t->setItem(row, 1, new QTableWidgetItem(mov->creator));
+                t->setItem(row, 2, new QTableWidgetItem(QString::number(mov->publicationYear)));
+                t->setItem(row, 3, new QTableWidgetItem(mov->format));
+                t->setItem(row, 4, new QTableWidgetItem(condToString(mov->condition)));
+                t->setItem(row, 5, new QTableWidgetItem(mov->genre));
+                t->setItem(row, 6, new QTableWidgetItem(QString::number(mov->rating)));
+                ++row;
+            }
+        }
+        t->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    }
+}
+
+void MainWindow::populateVideoGameTable() {
+    if (auto* t = get<QTableWidget>(this, "videoGameTableWidget")) {
+        t->clear();
+        t->setColumnCount(7);
+        t->setHorizontalHeaderLabels({"Title", "Studio", "Year", "Format", "Condition", "Platform", "Genre"});
+        t->setRowCount(0);
+        int row = 0;
+        for (Item* item : catalogue) {
+            if (auto* vg = dynamic_cast<VideoGame*>(item)) {
+                t->insertRow(row);
+                t->setItem(row, 0, new QTableWidgetItem(vg->title));
+                t->item(row, 0)->setData(Qt::UserRole, vg->itemId.toString());
+                t->setItem(row, 1, new QTableWidgetItem(vg->creator));
+                t->setItem(row, 2, new QTableWidgetItem(QString::number(vg->publicationYear)));
+                t->setItem(row, 3, new QTableWidgetItem(vg->format));
+                t->setItem(row, 4, new QTableWidgetItem(condToString(vg->condition)));
+                t->setItem(row, 5, new QTableWidgetItem(vg->platform));
+                t->setItem(row, 6, new QTableWidgetItem(vg->genre));
+                ++row;
+            }
+        }
+        t->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    }
 }
