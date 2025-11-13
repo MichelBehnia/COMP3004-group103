@@ -195,19 +195,44 @@ void MainWindow::on_borrowSelectedButton_clicked() {
 
 //unborrow button slot
 void MainWindow::on_unborrowSelectedButton_clicked() {
-    if (QTableWidget* t = currentTable()) {
-        int row = t->currentRow();
-        if (row >= 0) returnFromRow(t, row);
+    QTableWidget* t = currentTable();
+
+    //if we're on the Account Status page, use the loans table instead
+    auto* stacked = get<QStackedWidget>(this, "stackedWidget");
+    QWidget* accPage = get<QWidget>(this, "accountStatusPage");
+    if (!accPage) accPage = get<QWidget>(this, "accountPage");
+
+    if (!t && stacked && accPage && stacked->currentWidget() == accPage) {
+        t = get<QTableWidget>(this, "loansTableWidget");
+    }
+
+    if (!t) return;
+    int row = t->currentRow();
+    if (row >= 0) {
+        returnFromRow(t, row);
     }
 }
 
+
 //unborrow action slot
 void MainWindow::on_actionUnborrow_triggered() {
-    if (QTableWidget* t = currentTable()) {
-        int row = t->currentRow();
-        if (row >= 0) returnFromRow(t, row);
+    QTableWidget* t = currentTable();
+
+    auto* stacked = get<QStackedWidget>(this, "stackedWidget");
+    QWidget* accPage = get<QWidget>(this, "accountStatusPage");
+    if (!accPage) accPage = get<QWidget>(this, "accountPage");
+
+    if (!t && stacked && accPage && stacked->currentWidget() == accPage) {
+        t = get<QTableWidget>(this, "loansTableWidget");
+    }
+
+    if (!t) return;
+    int row = t->currentRow();
+    if (row >= 0) {
+        returnFromRow(t, row);
     }
 }
+
 
 //place hold button slot
 void MainWindow::on_placeHoldButton_clicked()
@@ -356,17 +381,25 @@ bool MainWindow::placeHoldById(const QUuid& id, QString* err)
         return false;
     }
 
+    //must be checked out
     if (it->status != ItemStatus::CheckedOut) {
         if (err) *err = "You can only place holds on checked-out items.";
         return false;
     }
 
+    //cannot hold your own loan
+    if (patronHasLoan(*p, id)) {
+        if (err) *err = "You cannot place a hold on an item you are currently borrowing.";
+        return false;
+    }
+
+    //already holding
     if (patronHasHold(*p, id)) {
         if (err) *err = "You already have a hold on this item.";
         return false;
     }
 
-    // Add patron to queue and record the hold
+    //push to queue
     it->holdQueue.push_back(p->name);
     p->activeHolds.push_back(id);
 
@@ -374,6 +407,8 @@ bool MainWindow::placeHoldById(const QUuid& id, QString* err)
     if (err) *err = QString("Hold placed successfully. You are #%1 in the queue.").arg(position);
     return true;
 }
+
+
 
 bool MainWindow::cancelHoldById(const QUuid& id, QString* err)
 {
@@ -497,16 +532,22 @@ void MainWindow::populateAccountStatus() {
         t->setHorizontalHeaderLabels({"Title", "Type", "Status", "Due", "Condition"});
         int row = 0;
         for (const QUuid& id : p->activeLoans) {
-            if (Item* it = findById(catalogue, id)) {
-                t->insertRow(row);
-                t->setItem(row, 0, new QTableWidgetItem(it->title));
-                t->setItem(row, 1, new QTableWidgetItem(it->typeName()));
-                t->setItem(row, 2, new QTableWidgetItem(statToString(it->status)));
-                t->setItem(row, 3, new QTableWidgetItem(it->dueDate.isValid() ? it->dueDate.toString() : "-"));
-                t->setItem(row, 4, new QTableWidgetItem(condToString(it->condition)));
-                ++row;
-            }
+        if (Item* it = findById(catalogue, id)) {
+            t->insertRow(row);
+
+            //title column + store itemId so returnFromRow/idForRow work here too
+            auto *titleItem = new QTableWidgetItem(it->title);
+            titleItem->setData(Qt::UserRole, it->itemId.toString());
+            t->setItem(row, 0, titleItem);
+
+            t->setItem(row, 1, new QTableWidgetItem(it->typeName()));
+            t->setItem(row, 2, new QTableWidgetItem(statToString(it->status)));
+            t->setItem(row, 3, new QTableWidgetItem(it->dueDate.isValid() ? it->dueDate.toString() : "-"));
+            t->setItem(row, 4, new QTableWidgetItem(condToString(it->condition)));
+            ++row;
         }
+    }
+
         t->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     }
 
