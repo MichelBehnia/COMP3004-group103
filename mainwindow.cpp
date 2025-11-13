@@ -155,9 +155,9 @@ MainWindow::MainWindow(QWidget *parent)
     if (auto* b = get<QPushButton>(this, "accountStatusButton"))
         connect(b, &QPushButton::clicked, this, &MainWindow::on_accountStatusButton_clicked, Qt::UniqueConnection);
     if (auto* a = get<QAction>(this, "actionAccount_Status"))
-        connect(a, &QAction::triggered, this, &MainWindow::on_actionAccount_Status_triggered, Qt::UniqueConnection);
+        connect(a, &QAction::triggered, this, &MainWindow::accountStatusActionTriggered, Qt::UniqueConnection);
     if (auto* a = get<QAction>(this, "actionUnborrow"))
-        connect(a, &QAction::triggered, this, &MainWindow::on_actionUnborrow_triggered, Qt::UniqueConnection);
+        connect(a, &QAction::triggered, this, &MainWindow::unborrowActionTriggered, Qt::UniqueConnection);
     if (auto* b = get<QPushButton>(this, "backFromAccountButton"))
         connect(b, &QPushButton::clicked, this, &MainWindow::on_backFromAccountButton_clicked, Qt::UniqueConnection);
 }
@@ -167,16 +167,11 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
-//qt slots
-void MainWindow::on_tabWidget_currentChanged(int /*index*/) {
-    //no op
-}
-
 void MainWindow::on_accountStatusButton_clicked() {
     showAccountStatusPage();
 }
 
-void MainWindow::on_actionAccount_Status_triggered() {
+void MainWindow::accountStatusActionTriggered() {
     showAccountStatusPage();
 }
 
@@ -215,7 +210,7 @@ void MainWindow::on_unborrowSelectedButton_clicked() {
 
 
 //unborrow action slot
-void MainWindow::on_actionUnborrow_triggered() {
+void MainWindow::unborrowActionTriggered() {
     QTableWidget* t = currentTable();
 
     auto* stacked = get<QStackedWidget>(this, "stackedWidget");

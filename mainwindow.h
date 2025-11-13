@@ -135,12 +135,10 @@ public:
     ~MainWindow();
 
 private slots:
-    //table population hook
-    void on_tabWidget_currentChanged(int index);
 
     //account status entry
     void on_accountStatusButton_clicked(); //button
-    void on_actionAccount_Status_triggered(); //menu or toolbar
+    void accountStatusActionTriggered(); //menu or toolbar
     void on_backFromAccountButton_clicked(); //back button
 
     //borrow
@@ -153,7 +151,7 @@ private slots:
 
     //return
     void on_unborrowSelectedButton_clicked();
-    void on_actionUnborrow_triggered();
+    void unborrowActionTriggered();
 
     //logout
     void on_logoutButton_clicked();
