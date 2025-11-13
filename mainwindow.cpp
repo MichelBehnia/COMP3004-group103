@@ -234,6 +234,18 @@ void MainWindow::on_cancelHoldSelectedButton_clicked()
     }
 }
 
+void MainWindow::on_logoutButton_clicked() {
+    auto* stacked = get<QStackedWidget>(this, "stackedWidget");
+    auto* tableButtons = get<QWidget>(this, "tableButtonGroupBox");
+    auto* roleLbl = get<QLabel>(this, "userRoleLabel");
+    auto* usernameField = get<QLineEdit>(this, "usernameLineEdit");
+
+    if (stacked) stacked->setCurrentIndex(0);
+    if (tableButtons) tableButtons->hide();
+    if (roleLbl) roleLbl->setText("Logged out");
+    if (usernameField) usernameField->clear();
+}
+
 
 //borrowing helpers
 QTableWidget* MainWindow::currentTable() const {

@@ -155,6 +155,9 @@ private slots:
     void on_unborrowSelectedButton_clicked();
     void on_actionUnborrow_triggered();
 
+    //logout
+    void on_logoutButton_clicked();
+
 private:
     Ui::MainWindow *ui;
 
