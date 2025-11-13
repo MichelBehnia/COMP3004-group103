@@ -512,7 +512,7 @@ void MainWindow::populateAccountStatus() {
                 int pos = -1;
                 if (!it->holdQueue.empty()) {
                     for (int i = 0; i < it->holdQueue.size(); ++i) {
-                        if (it->holdQueue[i] == p->id) {
+                        if (it->holdQueue[i] == p->name) {
                             pos = i + 1;
                             break;
                         }

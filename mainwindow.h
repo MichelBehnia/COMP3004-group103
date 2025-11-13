@@ -175,6 +175,10 @@ private:
     bool borrowById(const QUuid& id, QString* err);
     void hookDoubleClickBorrow();
 
+    //hold helpers
+    bool placeHoldById(const QUuid& id, QString* err);
+    bool cancelHoldById(const QUuid& id, QString* err);
+
     //return helpers
     void returnFromRow(QTableWidget* table, int row);
     bool returnById(const QUuid& id, QString* err);
