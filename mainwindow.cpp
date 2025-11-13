@@ -307,10 +307,6 @@ bool MainWindow::borrowById(const QUuid& id, QString* err) {
     Item* it = findById(catalogue, id);
     if (!it) { if (err) *err = "Item not found."; return false; }
 
-    if (it->status != ItemStatus::Available) {
-        if (err) *err = "Item is not available.";
-        return false;
-    }
     if (patronHasLoan(*p, id)) {
         if (err) *err = "You already borrowed this item.";
         return false;
@@ -318,6 +314,24 @@ bool MainWindow::borrowById(const QUuid& id, QString* err) {
     if (p->activeLoans.size() >= 3) {
         if (err) *err = "Max 3 active loans reached (D1).";
         return false;
+    }
+
+    switch (it->status) {
+    case ItemStatus::Available:
+        break;
+
+    case ItemStatus::CheckedOut:
+        if (err) *err = "Item is already checked out.";
+        return false;
+
+    case ItemStatus::OnHold:
+        if (it->holdQueue.front() != p->name) {
+            if (err) *err = "Item is on hold for another patron.";
+            return false;
+        }
+
+        it->holdQueue.pop_front();
+        break;
     }
 
     it->status  = ItemStatus::CheckedOut;
@@ -563,6 +577,7 @@ void MainWindow::populateAccountStatus() {
             if (Item* it = findById(catalogue, id)) {
                 t->insertRow(row);
                 t->setItem(row, 0, new QTableWidgetItem(it->title));
+                t->item(row, 0)->setData(Qt::UserRole, it->itemId.toString()); 
                 t->setItem(row, 1, new QTableWidgetItem(it->typeName()));
                 t->setItem(row, 2, new QTableWidgetItem(statToString(it->status)));
 
