@@ -147,8 +147,8 @@ private slots:
     void on_borrowSelectedButton_clicked();
 
     //hold
-    void on_placeHoldSelectedButton_clicked();
-    void on_cancelHoldSelectedButton_clicked();
+    void on_placeHoldButton_clicked();
+    void on_cancelHoldButton_clicked();
 
 
     //return

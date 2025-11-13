@@ -133,6 +133,9 @@ MainWindow::MainWindow(QWidget *parent)
             setTextIf(roleLbl, username + ": " + role);
             if (tableButtons) tableButtons->show();
 
+            auto* logoutButton = get<QPushButton>(this, "logoutButton");
+            if (logoutButton) logoutButton->show();
+
             populateFictionTable();
             populateNonFictionTable();
             populateMagazineTable();
@@ -207,7 +210,7 @@ void MainWindow::on_actionUnborrow_triggered() {
 }
 
 //place hold button slot
-void MainWindow::on_placeHoldSelectedButton_clicked()
+void MainWindow::on_placeHoldButton_clicked()
 {
     if (QTableWidget* t = currentTable()) {
         int row = t->currentRow();
@@ -221,7 +224,7 @@ void MainWindow::on_placeHoldSelectedButton_clicked()
 }
 
 //cancel hold button slot
-void MainWindow::on_cancelHoldSelectedButton_clicked()
+void MainWindow::on_cancelHoldButton_clicked()
 {
     if (QTableWidget* t = get<QTableWidget>(this, "holdsTableWidget")) {
         int row = t->currentRow();
@@ -238,10 +241,12 @@ void MainWindow::on_logoutButton_clicked() {
     auto* stacked = get<QStackedWidget>(this, "stackedWidget");
     auto* tableButtons = get<QWidget>(this, "tableButtonGroupBox");
     auto* roleLbl = get<QLabel>(this, "userRoleLabel");
+    auto* logoutButton = get<QPushButton>(this, "logoutButton");
     auto* usernameField = get<QLineEdit>(this, "usernameLineEdit");
 
     if (stacked) stacked->setCurrentIndex(0);
     if (tableButtons) tableButtons->hide();
+    if (logoutButton) logoutButton->hide();
     if (roleLbl) roleLbl->setText("Logged out");
     if (usernameField) usernameField->clear();
 }
