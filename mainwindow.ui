@@ -31,8 +31,8 @@
     <property name="geometry">
      <rect>
       <x>90</x>
-      <y>40</y>
-      <width>1161</width>
+      <y>50</y>
+      <width>541</width>
       <height>41</height>
      </rect>
     </property>
@@ -104,77 +104,6 @@
       <string>Videogames</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="accountStatusButton">
-     <property name="geometry">
-      <rect>
-       <x>540</x>
-       <y>10</y>
-       <width>111</width>
-       <height>25</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Account Status</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="borrowSelectedButton">
-     <property name="geometry">
-      <rect>
-       <x>660</x>
-       <y>10</y>
-       <width>131</width>
-       <height>25</height>
-      </rect>
-     </property>
-     <property name="toolTip">
-      <string>Borrows the currently selected row in the visible table</string>
-     </property>
-     <property name="text">
-      <string>Borrow Selected</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="unborrowSelectedButton">
-     <property name="geometry">
-      <rect>
-       <x>800</x>
-       <y>10</y>
-       <width>161</width>
-       <height>25</height>
-      </rect>
-     </property>
-     <property name="toolTip">
-      <string>Returns the selected item from the Account &gt; Loans table</string>
-     </property>
-     <property name="text">
-      <string>Unborrow Selected</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="placeHoldButton">
-     <property name="geometry">
-      <rect>
-       <x>970</x>
-       <y>10</y>
-       <width>83</width>
-       <height>25</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Place Hold</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="cancelHoldButton">
-     <property name="geometry">
-      <rect>
-       <x>1060</x>
-       <y>10</y>
-       <width>83</width>
-       <height>25</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Cancel Hold</string>
-     </property>
-    </widget>
    </widget>
    <widget class="QStackedWidget" name="stackedWidget">
     <property name="geometry">
@@ -186,14 +115,14 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>5</number>
     </property>
     <widget class="QWidget" name="page">
      <widget class="QGroupBox" name="loginGroupBox">
       <property name="geometry">
        <rect>
-        <x>240</x>
-        <y>120</y>
+        <x>250</x>
+        <y>40</y>
         <width>771</width>
         <height>266</height>
        </rect>
@@ -239,9 +168,9 @@
      <widget class="QTableWidget" name="fictionTableWidget">
       <property name="geometry">
        <rect>
-        <x>160</x>
+        <x>80</x>
         <y>20</y>
-        <width>951</width>
+        <width>1051</width>
         <height>401</height>
        </rect>
       </property>
@@ -251,9 +180,9 @@
      <widget class="QTableWidget" name="nonFictionTableWidget">
       <property name="geometry">
        <rect>
-        <x>180</x>
+        <x>80</x>
         <y>20</y>
-        <width>951</width>
+        <width>1051</width>
         <height>401</height>
        </rect>
       </property>
@@ -263,9 +192,9 @@
      <widget class="QTableWidget" name="magazineTableWidget">
       <property name="geometry">
        <rect>
-        <x>160</x>
+        <x>80</x>
         <y>20</y>
-        <width>951</width>
+        <width>1051</width>
         <height>401</height>
        </rect>
       </property>
@@ -275,9 +204,9 @@
      <widget class="QTableWidget" name="movieTableWidget">
       <property name="geometry">
        <rect>
-        <x>190</x>
+        <x>80</x>
         <y>20</y>
-        <width>951</width>
+        <width>1051</width>
         <height>401</height>
        </rect>
       </property>
@@ -287,9 +216,9 @@
      <widget class="QTableWidget" name="videoGameTableWidget">
       <property name="geometry">
        <rect>
-        <x>180</x>
+        <x>80</x>
         <y>20</y>
-        <width>951</width>
+        <width>1051</width>
         <height>401</height>
        </rect>
       </property>
@@ -403,18 +332,115 @@
      </widget>
     </widget>
    </widget>
-   <widget class="QPushButton" name="logoutButton">
+   <widget class="QGroupBox" name="actionButtonsGroupBox">
     <property name="geometry">
      <rect>
-      <x>860</x>
-      <y>10</y>
-      <width>71</width>
-      <height>25</height>
+      <x>640</x>
+      <y>50</y>
+      <width>501</width>
+      <height>41</height>
      </rect>
     </property>
-    <property name="text">
-     <string>Log Out</string>
+    <property name="title">
+     <string/>
     </property>
+    <widget class="QPushButton" name="borrowSelectedButton">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>131</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Borrows the currently selected row in the visible table</string>
+     </property>
+     <property name="text">
+      <string>Borrow Selected</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="placeHoldButton">
+     <property name="geometry">
+      <rect>
+       <x>320</x>
+       <y>10</y>
+       <width>83</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Place Hold</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="cancelHoldButton">
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>10</y>
+       <width>83</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Cancel Hold</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="unborrowSelectedButton">
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>10</y>
+       <width>161</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Returns the selected item from the Account &gt; Loans table</string>
+     </property>
+     <property name="text">
+      <string>Unborrow Selected</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="accountButtonsGroupBox">
+    <property name="geometry">
+     <rect>
+      <x>1090</x>
+      <y>0</y>
+      <width>211</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string/>
+    </property>
+    <widget class="QPushButton" name="accountStatusButton">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>111</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Account Status</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="logoutButton">
+     <property name="geometry">
+      <rect>
+       <x>130</x>
+       <y>10</y>
+       <width>71</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Log Out</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>

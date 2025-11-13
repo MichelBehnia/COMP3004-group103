@@ -51,6 +51,14 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    auto* accountButtonsBox = get<QGroupBox>(this, "accountButtonsGroupBox");
+    auto* actionButtonsBox = get<QGroupBox>(this, "actionButtonsGroupBox");
+    auto* tableButtonsBox = get<QWidget>(this, "tableButtonGroupBox");
+
+    if (accountButtonsBox) accountButtonsBox->hide();
+    if (actionButtonsBox) actionButtonsBox->hide();
+    if (tableButtonsBox) tableButtonsBox->hide();
+
     //seed users
     patrons.append(Patron("michel"));
     patrons.append(Patron("eddie"));
@@ -97,9 +105,6 @@ MainWindow::MainWindow(QWidget *parent)
     //initial page
     if (stacked) stacked->setCurrentIndex(0);
 
-    //hide table buttons
-    if (tableButtons) tableButtons->hide();
-
     //page nav buttons
     if (auto* b = get<QPushButton>(this, "fictionButton"))
         connect(b, &QPushButton::clicked, this, [this, stacked]() { if (stacked) stacked->setCurrentIndex(1); }, Qt::UniqueConnection);
@@ -131,10 +136,14 @@ MainWindow::MainWindow(QWidget *parent)
             if (!found) { setTextIf(roleLbl, "Invalid username"); return; }
 
             setTextIf(roleLbl, username + ": " + role);
-            if (tableButtons) tableButtons->show();
 
-            auto* logoutButton = get<QPushButton>(this, "logoutButton");
-            if (logoutButton) logoutButton->show();
+            auto* accountButtonsBox = get<QGroupBox>(this, "accountButtonsGroupBox");
+            auto* actionButtonsBox = get<QGroupBox>(this, "actionButtonsGroupBox");
+            auto* tableButtonsBox = get<QWidget>(this, "tableButtonGroupBox");
+
+            if (accountButtonsBox) accountButtonsBox->show();
+            if (actionButtonsBox) actionButtonsBox->show();
+            if (tableButtonsBox) tableButtonsBox->show();
 
             populateFictionTable();
             populateNonFictionTable();
@@ -144,8 +153,6 @@ MainWindow::MainWindow(QWidget *parent)
 
             //enable double click borrow
             hookDoubleClickBorrow();
-
-            //do not reconnect borrow buttons
 
             if (stacked) stacked->setCurrentIndex(1);
         }, Qt::UniqueConnection);
@@ -169,6 +176,12 @@ MainWindow::~MainWindow() {
 
 void MainWindow::on_accountStatusButton_clicked() {
     showAccountStatusPage();
+
+    auto* actionButtonsBox = get<QGroupBox>(this, "actionButtonsGroupBox");
+    auto* tableButtonsBox = get<QWidget>(this, "tableButtonGroupBox");
+
+    if (actionButtonsBox) actionButtonsBox->hide();
+    if (tableButtonsBox) tableButtonsBox->hide();
 }
 
 void MainWindow::accountStatusActionTriggered() {
@@ -178,6 +191,12 @@ void MainWindow::accountStatusActionTriggered() {
 void MainWindow::on_backFromAccountButton_clicked() {
     if (auto* stacked = get<QStackedWidget>(this, "stackedWidget"))
         stacked->setCurrentIndex(1);
+
+    auto* actionButtonsBox = get<QGroupBox>(this, "actionButtonsGroupBox");
+    auto* tableButtonsBox = get<QWidget>(this, "tableButtonGroupBox");
+
+    if (actionButtonsBox) actionButtonsBox->show();
+    if (tableButtonsBox) tableButtonsBox->show();
 }
 
 //borrow button slot
@@ -192,7 +211,6 @@ void MainWindow::on_borrowSelectedButton_clicked() {
 void MainWindow::on_unborrowSelectedButton_clicked() {
     QTableWidget* t = currentTable();
 
-    //if we're on the Account Status page, use the loans table instead
     auto* stacked = get<QStackedWidget>(this, "stackedWidget");
     QWidget* accPage = get<QWidget>(this, "accountStatusPage");
     if (!accPage) accPage = get<QWidget>(this, "accountPage");
@@ -261,16 +279,21 @@ void MainWindow::on_logoutButton_clicked() {
     auto* stacked = get<QStackedWidget>(this, "stackedWidget");
     auto* tableButtons = get<QWidget>(this, "tableButtonGroupBox");
     auto* roleLbl = get<QLabel>(this, "userRoleLabel");
-    auto* logoutButton = get<QPushButton>(this, "logoutButton");
     auto* usernameField = get<QLineEdit>(this, "usernameLineEdit");
+    auto* accountButtonsBox = get<QGroupBox>(this, "accountButtonsGroupBox");
+    auto* actionButtonsBox = get<QGroupBox>(this, "actionButtonsGroupBox");
+
+    if (accountButtonsBox) accountButtonsBox->hide();
+    if (actionButtonsBox) actionButtonsBox->hide();
+    if (tableButtons)     tableButtons->hide();
 
     if (stacked) stacked->setCurrentIndex(0);
-    if (tableButtons) tableButtons->hide();
-    if (logoutButton) logoutButton->hide();
     if (roleLbl) roleLbl->setText("Logged out");
     if (usernameField) usernameField->clear();
 }
 
+// Remaining code unchanged and as you posted...
+// (populate methods, helpers, etc.)
 
 //borrowing helpers
 QTableWidget* MainWindow::currentTable() const {
