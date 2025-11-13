@@ -206,6 +206,35 @@ void MainWindow::on_actionUnborrow_triggered() {
     }
 }
 
+//place hold button slot
+void MainWindow::on_placeHoldSelectedButton_clicked()
+{
+    if (QTableWidget* t = currentTable()) {
+        int row = t->currentRow();
+        if (row < 0) return;
+        const QUuid id = idForRow(t, row);
+        QString msg;
+        placeHoldById(id, &msg);
+        populateAccountStatus();
+        statusBar()->showMessage(msg, 3000);
+    }
+}
+
+//cancel hold button slot
+void MainWindow::on_cancelHoldSelectedButton_clicked()
+{
+    if (QTableWidget* t = get<QTableWidget>(this, "holdsTableWidget")) {
+        int row = t->currentRow();
+        if (row < 0) return;
+        const QUuid id = idForRow(t, row);
+        QString msg;
+        cancelHoldById(id, &msg);
+        populateAccountStatus();
+        statusBar()->showMessage(msg, 3000);
+    }
+}
+
+
 //borrowing helpers
 QTableWidget* MainWindow::currentTable() const {
     auto* stacked = get<QStackedWidget>(const_cast<MainWindow*>(this), "stackedWidget");
@@ -295,6 +324,74 @@ void MainWindow::hookDoubleClickBorrow() {
     hook(get<QTableWidget>(this, "videoGameTableWidget"));
 }
 
+//hold helpers
+bool MainWindow::placeHoldById(const QUuid& id, QString* err)
+{
+    Patron* p = currentPatron();
+    if (!p) {
+        if (err) *err = "No patron logged in.";
+        return false;
+    }
+
+    Item* it = findById(catalogue, id);
+    if (!it) {
+        if (err) *err = "Item not found.";
+        return false;
+    }
+
+    if (it->status != ItemStatus::CheckedOut) {
+        if (err) *err = "You can only place holds on checked-out items.";
+        return false;
+    }
+
+    if (patronHasHold(*p, id)) {
+        if (err) *err = "You already have a hold on this item.";
+        return false;
+    }
+
+    // Add patron to queue and record the hold
+    it->holdQueue.push_back(p->name);
+    p->activeHolds.push_back(id);
+
+    int position = it->holdQueue.size();
+    if (err) *err = QString("Hold placed successfully. You are #%1 in the queue.").arg(position);
+    return true;
+}
+
+bool MainWindow::cancelHoldById(const QUuid& id, QString* err)
+{
+    Patron* p = currentPatron();
+    if (!p) {
+        if (err) *err = "No patron logged in.";
+        return false;
+    }
+
+    Item* it = findById(catalogue, id);
+    if (!it) {
+        if (err) *err = "Item not found.";
+        return false;
+    }
+
+    auto holdIt = std::find(p->activeHolds.begin(), p->activeHolds.end(), id);
+    if (holdIt == p->activeHolds.end()) {
+        if (err) *err = "You do not have a hold on this item.";
+        return false;
+    }
+
+    // Remove from patron list
+    p->activeHolds.erase(holdIt);
+
+    // Remove from item queue
+    auto qIt = std::find(it->holdQueue.begin(), it->holdQueue.end(), p->name);
+    if (qIt != it->holdQueue.end())
+        it->holdQueue.erase(qIt);
+
+    if (err) *err = "Hold canceled successfully.";
+    return true;
+}
+
+
+
 //return helpers
 bool MainWindow::returnById(const QUuid& id, QString* err) {
     Patron* p = currentPatron();
@@ -312,8 +409,16 @@ bool MainWindow::returnById(const QUuid& id, QString* err) {
 
     //return item
     p->activeLoans.erase(itPos);
-    it->status = ItemStatus::Available;
-    it->dueDate = QDate(); //clear date
+
+    if (!it->holdQueue.isEmpty()) {
+        it->status = ItemStatus::OnHold;
+        QString nextPatronName = it->holdQueue.front();
+    } else {
+        it->status = ItemStatus::Available;
+    }
+
+    it->dueDate = QDate();
+
 
     if (err) *err = "Returned successfully.";
     return true;
@@ -392,8 +497,9 @@ void MainWindow::populateAccountStatus() {
     if (auto* t = get<QTableWidget>(this, "holdsTableWidget")) {
         t->clear();
         t->setRowCount(0);
-        t->setColumnCount(3);
-        t->setHorizontalHeaderLabels({"Title", "Type", "Status"});
+        t->setColumnCount(4);
+        t->setHorizontalHeaderLabels({"Title", "Type", "Status", "Queue Position"});
+
         int row = 0;
         for (const QUuid& id : p->activeHolds) {
             if (Item* it = findById(catalogue, id)) {
@@ -401,6 +507,20 @@ void MainWindow::populateAccountStatus() {
                 t->setItem(row, 0, new QTableWidgetItem(it->title));
                 t->setItem(row, 1, new QTableWidgetItem(it->typeName()));
                 t->setItem(row, 2, new QTableWidgetItem(statToString(it->status)));
+
+                // queue position logic
+                int pos = -1;
+                if (!it->holdQueue.empty()) {
+                    for (int i = 0; i < it->holdQueue.size(); ++i) {
+                        if (it->holdQueue[i] == p->id) {
+                            pos = i + 1;
+                            break;
+                        }
+                    }
+                }
+                QString posText = (pos > 0) ? QString::number(pos) : "-";
+                t->setItem(row, 3, new QTableWidgetItem(posText));
+
                 ++row;
             }
         }

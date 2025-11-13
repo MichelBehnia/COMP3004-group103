@@ -35,6 +35,7 @@ public:
     ItemCondition condition = ItemCondition::Standard;
     ItemStatus status = ItemStatus::Available;
     QDate dueDate; //set on checkout
+    QVector<QString> holdQueue;  // usernames waiting for this item
 
     explicit Item(const QString& t,
                   const QString& c,
@@ -144,6 +145,11 @@ private slots:
 
     //borrow
     void on_borrowSelectedButton_clicked();
+
+    //hold
+    void on_placeHoldSelectedButton_clicked();
+    void on_cancelHoldSelectedButton_clicked();
+
 
     //return
     void on_unborrowSelectedButton_clicked();
