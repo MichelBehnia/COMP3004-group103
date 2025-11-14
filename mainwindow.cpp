@@ -51,6 +51,13 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    connect(ui->unborrowSelectedButton_account, &QPushButton::clicked,
+        this, &MainWindow::on_unborrowSelectedButton_clicked);
+
+    connect(ui->cancelHoldButton_account, &QPushButton::clicked,
+        this, &MainWindow::on_cancelHoldButton_clicked);
+
+
     auto* accountButtonsBox = get<QGroupBox>(this, "accountButtonsGroupBox");
     auto* actionButtonsBox = get<QGroupBox>(this, "actionButtonsGroupBox");
     auto* tableButtonsBox = get<QWidget>(this, "tableButtonGroupBox");
@@ -264,16 +271,44 @@ void MainWindow::on_placeHoldButton_clicked()
 //cancel hold button slot
 void MainWindow::on_cancelHoldButton_clicked()
 {
-    if (QTableWidget* t = get<QTableWidget>(this, "holdsTableWidget")) {
-        int row = t->currentRow();
-        if (row < 0) return;
-        const QUuid id = idForRow(t, row);
-        QString msg;
-        cancelHoldById(id, &msg);
-        populateAccountStatus();
-        statusBar()->showMessage(msg, 3000);
+    //get stacked + account page
+    auto* stacked = get<QStackedWidget>(this, "stackedWidget");
+    QWidget* accPage = get<QWidget>(this, "accountStatusPage");
+    if (!accPage) accPage = get<QWidget>(this, "accountPage");
+
+    QTableWidget* t = nullptr;
+
+    //if on account page, use holds table
+    if (stacked && accPage && stacked->currentWidget() == accPage) {
+        t = get<QTableWidget>(this, "holdsTableWidget");
+    } 
+    //otherwise use current catalogue table
+    else {
+        t = currentTable();
     }
+
+    if (!t) return;
+
+    int row = t->currentRow();
+    if (row < 0) return;
+
+    const QUuid id = idForRow(t, row);
+    if (id.isNull()) return;
+
+    QString msg;
+    cancelHoldById(id, &msg);
+
+    //update displays
+    populateAccountStatus();
+    populateFictionTable();
+    populateNonFictionTable();
+    populateMagazineTable();
+    populateMovieTable();
+    populateVideoGameTable();
+
+    statusBar()->showMessage(msg, 3000);
 }
+
 
 void MainWindow::on_logoutButton_clicked() {
     auto* stacked = get<QStackedWidget>(this, "stackedWidget");

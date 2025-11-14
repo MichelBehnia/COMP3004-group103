@@ -258,6 +258,33 @@
        <string>Back</string>
       </property>
      </widget>
+     <widget class="QPushButton" name="unborrowSelectedButton_account">
+      <property name="geometry">
+       <rect>
+        <x>900</x>
+        <y>45</y>
+        <width>161</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Unborrow Selected</string>
+      </property>
+     </widget>
+
+     <widget class="QPushButton" name="cancelHoldButton_account">
+      <property name="geometry">
+       <rect>
+        <x>1070</x>
+        <y>45</y>
+        <width>121</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Cancel Hold</string>
+      </property>
+     </widget>
      <widget class="QLabel" name="accountNameLabel">
       <property name="geometry">
        <rect>
