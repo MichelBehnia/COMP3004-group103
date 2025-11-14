@@ -83,7 +83,7 @@ public:
 class Movie : public Item {
 public:
     QString genre;
-    int rating = 0; //rating scale is up to you
+    int rating = 0; //rating scale
     Movie(const QString& t, const QString& a, int y, const QString& f,
           ItemCondition cond, const QString& g, int r)
         : Item(t, a, y, f, cond), genre(g), rating(r) {}

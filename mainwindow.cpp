@@ -124,7 +124,7 @@ MainWindow::MainWindow(QWidget *parent)
     if (auto* b = get<QPushButton>(this, "videoGameButton"))
         connect(b, &QPushButton::clicked, this, [this, stacked]() { if (stacked) stacked->setCurrentIndex(5); }, Qt::UniqueConnection);
 
-    //login wiring
+        // login wiring
     if (auto* loginBtn = get<QPushButton>(this, "loginButton")) {
         connect(loginBtn, &QPushButton::clicked, this, [this, stacked, tableButtons]() {
             const auto* userEdit = get<QLineEdit>(this, "usernameLineEdit");
@@ -133,14 +133,56 @@ MainWindow::MainWindow(QWidget *parent)
             bool found = false;
             QString role;
 
+            // Patron login
             for (int i = 0; i < patrons.size(); ++i) {
-                if (patrons[i].name == username) { found = true; role = "Patron"; currentPatronIndex = i; break; }
+                if (patrons[i].name == username) {
+                    found = true;
+                    role = "Patron";
+                    currentPatronIndex = i;
+                    break;
+                }
             }
-            if (!found) for (const Librarian& l : librarians)  if (l.name == username) { found = true; role = "Librarian"; break; }
-            if (!found) for (const SystemAdmin& a : systemAdmins) if (a.name == username) { found = true; role = "Admin"; break; }
+
+            // Librarian acts as a patron
+            if (!found) {
+                for (const Librarian& l : librarians) {
+                    if (l.name == username) {
+                        found = true;
+                        role = "Librarian";
+
+                        int idx = -1;
+                        for (int i = 0; i < patrons.size(); ++i) {
+                            if (patrons[i].name == username) {
+                                idx = i;
+                                break;
+                            }
+                        }
+                        if (idx == -1) {
+                            patrons.append(Patron(username));
+                            idx = patrons.size() - 1;
+                        }
+                        currentPatronIndex = idx;
+                        break;
+                    }
+                }
+            }
+
+            // Admin (no patron abilities)
+            if (!found) {
+                for (const SystemAdmin& a : systemAdmins) {
+                    if (a.name == username) {
+                        found = true;
+                        role = "Admin";
+                        break;
+                    }
+                }
+            }
 
             auto* roleLbl = get<QLabel>(this, "userRoleLabel");
-            if (!found) { setTextIf(roleLbl, "Invalid username"); return; }
+            if (!found) {
+                setTextIf(roleLbl, "Invalid username");
+                return;
+            }
 
             setTextIf(roleLbl, username + ": " + role);
 
@@ -158,12 +200,13 @@ MainWindow::MainWindow(QWidget *parent)
             populateMovieTable();
             populateVideoGameTable();
 
-            //enable double click borrow
+            // enable double-click borrow
             hookDoubleClickBorrow();
 
             if (stacked) stacked->setCurrentIndex(1);
         }, Qt::UniqueConnection);
     }
+
 
     //account status hooks
     if (auto* b = get<QPushButton>(this, "accountStatusButton"))
