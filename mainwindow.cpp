@@ -124,7 +124,7 @@ MainWindow::MainWindow(QWidget *parent)
     if (auto* b = get<QPushButton>(this, "videoGameButton"))
         connect(b, &QPushButton::clicked, this, [this, stacked]() { if (stacked) stacked->setCurrentIndex(5); }, Qt::UniqueConnection);
 
-        // login wiring
+        //login wiring
     if (auto* loginBtn = get<QPushButton>(this, "loginButton")) {
         connect(loginBtn, &QPushButton::clicked, this, [this, stacked, tableButtons]() {
             const auto* userEdit = get<QLineEdit>(this, "usernameLineEdit");
@@ -133,7 +133,7 @@ MainWindow::MainWindow(QWidget *parent)
             bool found = false;
             QString role;
 
-            // Patron login
+            //Patron login
             for (int i = 0; i < patrons.size(); ++i) {
                 if (patrons[i].name == username) {
                     found = true;
@@ -143,7 +143,7 @@ MainWindow::MainWindow(QWidget *parent)
                 }
             }
 
-            // Librarian acts as a patron
+            //Librarian acts as a patron
             if (!found) {
                 for (const Librarian& l : librarians) {
                     if (l.name == username) {
@@ -167,7 +167,7 @@ MainWindow::MainWindow(QWidget *parent)
                 }
             }
 
-            // Admin (no patron abilities)
+            //Admin (no patron abilities)
             if (!found) {
                 for (const SystemAdmin& a : systemAdmins) {
                     if (a.name == username) {
@@ -184,7 +184,10 @@ MainWindow::MainWindow(QWidget *parent)
                 return;
             }
 
-            setTextIf(roleLbl, username + ": " + role);
+            QString displayRole = role;
+            if (role == "Librarian") displayRole = "Librarian / Patron";
+            setTextIf(roleLbl, username + ": " + displayRole);
+
 
             auto* accountButtonsBox = get<QGroupBox>(this, "accountButtonsGroupBox");
             auto* actionButtonsBox = get<QGroupBox>(this, "actionButtonsGroupBox");
@@ -200,7 +203,7 @@ MainWindow::MainWindow(QWidget *parent)
             populateMovieTable();
             populateVideoGameTable();
 
-            // enable double-click borrow
+            //enable double-click borrow
             hookDoubleClickBorrow();
 
             if (stacked) stacked->setCurrentIndex(1);
@@ -370,8 +373,6 @@ void MainWindow::on_logoutButton_clicked() {
     if (usernameField) usernameField->clear();
 }
 
-// Remaining code unchanged and as you posted...
-// (populate methods, helpers, etc.)
 
 //borrowing helpers
 QTableWidget* MainWindow::currentTable() const {
@@ -540,10 +541,10 @@ bool MainWindow::cancelHoldById(const QUuid& id, QString* err)
         return false;
     }
 
-    // Remove from patron list
+    //Remove from patron list
     p->activeHolds.erase(holdIt);
 
-    // Remove from item queue
+    //Remove from item queue
     auto qIt = std::find(it->holdQueue.begin(), it->holdQueue.end(), p->name);
     if (qIt != it->holdQueue.end())
         it->holdQueue.erase(qIt);
@@ -628,8 +629,14 @@ void MainWindow::populateAccountStatus() {
     if (!p) return;
 
     setTextIf(get<QLabel>(this, "accountNameLabel"), p->name);
-    if (auto* role = get<QLabel>(this, "accountRoleLabel")) role->setText("Patron");
-    else if (auto* role2 = get<QLabel>(this, "accountTitleLabel")) role2->setText("Patron");
+
+    //role text (librarian acts as patron)
+    QString roleText = "Patron";
+    for (const Librarian& l : librarians) {
+        if (l.name == p->name) { roleText = "Librarian / Patron"; break; }
+    }
+    if (auto* role = get<QLabel>(this, "accountRoleLabel")) role->setText(roleText);
+    else if (auto* role2 = get<QLabel>(this, "accountTitleLabel")) role2->setText(roleText);
 
     if (auto* fines = get<QLabel>(this, "finesValueLabel"))
         fines->setText(QString("$%1").arg(QString::number(p->outstandingFines, 'f', 2)));
@@ -642,21 +649,21 @@ void MainWindow::populateAccountStatus() {
         t->setHorizontalHeaderLabels({"Title", "Type", "Status", "Due", "Condition"});
         int row = 0;
         for (const QUuid& id : p->activeLoans) {
-        if (Item* it = findById(catalogue, id)) {
-            t->insertRow(row);
+            if (Item* it = findById(catalogue, id)) {
+                t->insertRow(row);
 
-            //title column + store itemId so returnFromRow/idForRow work here too
-            auto *titleItem = new QTableWidgetItem(it->title);
-            titleItem->setData(Qt::UserRole, it->itemId.toString());
-            t->setItem(row, 0, titleItem);
+                //title column + store itemId so returnFromRow/idForRow work here too
+                auto* titleItem = new QTableWidgetItem(it->title);
+                titleItem->setData(Qt::UserRole, it->itemId.toString());
+                t->setItem(row, 0, titleItem);
 
-            t->setItem(row, 1, new QTableWidgetItem(it->typeName()));
-            t->setItem(row, 2, new QTableWidgetItem(statToString(it->status)));
-            t->setItem(row, 3, new QTableWidgetItem(it->dueDate.isValid() ? it->dueDate.toString() : "-"));
-            t->setItem(row, 4, new QTableWidgetItem(condToString(it->condition)));
-            ++row;
+                t->setItem(row, 1, new QTableWidgetItem(it->typeName()));
+                t->setItem(row, 2, new QTableWidgetItem(statToString(it->status)));
+                t->setItem(row, 3, new QTableWidgetItem(it->dueDate.isValid() ? it->dueDate.toString() : "-"));
+                t->setItem(row, 4, new QTableWidgetItem(condToString(it->condition)));
+                ++row;
+            }
         }
-    }
 
         t->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     }
@@ -673,11 +680,11 @@ void MainWindow::populateAccountStatus() {
             if (Item* it = findById(catalogue, id)) {
                 t->insertRow(row);
                 t->setItem(row, 0, new QTableWidgetItem(it->title));
-                t->item(row, 0)->setData(Qt::UserRole, it->itemId.toString()); 
+                t->item(row, 0)->setData(Qt::UserRole, it->itemId.toString());
                 t->setItem(row, 1, new QTableWidgetItem(it->typeName()));
                 t->setItem(row, 2, new QTableWidgetItem(statToString(it->status)));
 
-                // queue position logic
+                //queue position
                 int pos = -1;
                 if (!it->holdQueue.empty()) {
                     for (int i = 0; i < it->holdQueue.size(); ++i) {
@@ -696,6 +703,8 @@ void MainWindow::populateAccountStatus() {
         t->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     }
 }
+
+
 
 //current patron helpers
 Patron* MainWindow::currentPatron() {
