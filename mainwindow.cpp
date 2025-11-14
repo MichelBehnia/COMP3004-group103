@@ -677,14 +677,26 @@ void MainWindow::populateAccountStatus() {
             if (Item* it = findById(catalogue, id)) {
                 t->insertRow(row);
 
-                //title column + store itemId so returnFromRow/idForRow work here too
                 auto* titleItem = new QTableWidgetItem(it->title);
                 titleItem->setData(Qt::UserRole, it->itemId.toString());
                 t->setItem(row, 0, titleItem);
 
                 t->setItem(row, 1, new QTableWidgetItem(it->typeName()));
                 t->setItem(row, 2, new QTableWidgetItem(statToString(it->status)));
-                t->setItem(row, 3, new QTableWidgetItem(it->dueDate.isValid() ? it->dueDate.toString() : "-"));
+
+                QString dueText = "-";
+                if (it->dueDate.isValid()) {
+                    int days = QDate::currentDate().daysTo(it->dueDate);
+                    if (days >= 0) {
+                        dueText = QString("%1 (%2 days)")
+                                    .arg(it->dueDate.toString())
+                                    .arg(days);
+                    } else {
+                        dueText = QString("%1 (overdue)").arg(it->dueDate.toString());
+                    }
+                }
+                t->setItem(row, 3, new QTableWidgetItem(dueText));
+
                 t->setItem(row, 4, new QTableWidgetItem(condToString(it->condition)));
                 ++row;
             }
@@ -692,6 +704,7 @@ void MainWindow::populateAccountStatus() {
 
         t->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     }
+
 
     //holds table
     if (auto* t = get<QTableWidget>(this, "holdsTableWidget")) {
