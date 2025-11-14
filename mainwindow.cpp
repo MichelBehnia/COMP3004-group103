@@ -124,7 +124,7 @@ MainWindow::MainWindow(QWidget *parent)
     if (auto* b = get<QPushButton>(this, "videoGameButton"))
         connect(b, &QPushButton::clicked, this, [this, stacked]() { if (stacked) stacked->setCurrentIndex(5); }, Qt::UniqueConnection);
 
-        //login wiring
+    //login wiring
     if (auto* loginBtn = get<QPushButton>(this, "loginButton")) {
         connect(loginBtn, &QPushButton::clicked, this, [this, stacked, tableButtons]() {
             const auto* userEdit = get<QLineEdit>(this, "usernameLineEdit");
@@ -133,7 +133,7 @@ MainWindow::MainWindow(QWidget *parent)
             bool found = false;
             QString role;
 
-            //Patron login
+            //patron login
             for (int i = 0; i < patrons.size(); ++i) {
                 if (patrons[i].name == username) {
                     found = true;
@@ -143,7 +143,7 @@ MainWindow::MainWindow(QWidget *parent)
                 }
             }
 
-            //Librarian acts as a patron
+            //librarian acts as patron
             if (!found) {
                 for (const Librarian& l : librarians) {
                     if (l.name == username) {
@@ -167,7 +167,7 @@ MainWindow::MainWindow(QWidget *parent)
                 }
             }
 
-            //Admin (no patron abilities)
+            //admin (no patron abilities)
             if (!found) {
                 for (const SystemAdmin& a : systemAdmins) {
                     if (a.name == username) {
@@ -188,14 +188,34 @@ MainWindow::MainWindow(QWidget *parent)
             if (role == "Librarian") displayRole = "Librarian / Patron";
             setTextIf(roleLbl, username + ": " + displayRole);
 
-
             auto* accountButtonsBox = get<QGroupBox>(this, "accountButtonsGroupBox");
-            auto* actionButtonsBox = get<QGroupBox>(this, "actionButtonsGroupBox");
-            auto* tableButtonsBox = get<QWidget>(this, "tableButtonGroupBox");
+            auto* actionButtonsBox  = get<QGroupBox>(this, "actionButtonsGroupBox");
+            auto* tableButtonsBox   = get<QWidget>(this, "tableButtonGroupBox");
+            auto* accountStatusBtn  = get<QPushButton>(this, "accountStatusButton");
 
+            //admin; only show logout, no tables/buttons
+            if (role == "Admin") {
+
+                //hide login box
+                if (auto* loginBox = get<QGroupBox>(this, "loginGroupBox"))
+                    loginBox->hide();
+
+                if (accountButtonsBox) accountButtonsBox->show(); //shows Log Out
+                if (actionButtonsBox)  actionButtonsBox->hide();
+                if (tableButtonsBox)   tableButtonsBox->hide();
+                if (accountStatusBtn)  accountStatusBtn->setVisible(false);
+
+                if (stacked) stacked->setCurrentIndex(0); //stay on empty page
+                statusBar()->showMessage("Admin features coming in D2.", 3000);
+                return;
+            }
+
+
+            //Patron / Librarian; normal
+            if (accountStatusBtn) accountStatusBtn->setVisible(true);
             if (accountButtonsBox) accountButtonsBox->show();
-            if (actionButtonsBox) actionButtonsBox->show();
-            if (tableButtonsBox) tableButtonsBox->show();
+            if (actionButtonsBox)  actionButtonsBox->show();
+            if (tableButtonsBox)   tableButtonsBox->show();
 
             populateFictionTable();
             populateNonFictionTable();
@@ -203,12 +223,12 @@ MainWindow::MainWindow(QWidget *parent)
             populateMovieTable();
             populateVideoGameTable();
 
-            //enable double-click borrow
             hookDoubleClickBorrow();
 
-            if (stacked) stacked->setCurrentIndex(1);
+            if (stacked) stacked->setCurrentIndex(1); //first catalogue page
         }, Qt::UniqueConnection);
     }
+
 
 
     //account status hooks
@@ -357,21 +377,26 @@ void MainWindow::on_cancelHoldButton_clicked()
 
 
 void MainWindow::on_logoutButton_clicked() {
-    auto* stacked = get<QStackedWidget>(this, "stackedWidget");
-    auto* tableButtons = get<QWidget>(this, "tableButtonGroupBox");
-    auto* roleLbl = get<QLabel>(this, "userRoleLabel");
-    auto* usernameField = get<QLineEdit>(this, "usernameLineEdit");
+    auto* stacked           = get<QStackedWidget>(this, "stackedWidget");
+    auto* tableButtons      = get<QWidget>(this, "tableButtonGroupBox");
+    auto* roleLbl           = get<QLabel>(this, "userRoleLabel");
+    auto* usernameField     = get<QLineEdit>(this, "usernameLineEdit");
     auto* accountButtonsBox = get<QGroupBox>(this, "accountButtonsGroupBox");
-    auto* actionButtonsBox = get<QGroupBox>(this, "actionButtonsGroupBox");
+    auto* actionButtonsBox  = get<QGroupBox>(this, "actionButtonsGroupBox");
+    auto* loginBox          = get<QGroupBox>(this, "loginGroupBox");
 
     if (accountButtonsBox) accountButtonsBox->hide();
-    if (actionButtonsBox) actionButtonsBox->hide();
-    if (tableButtons)     tableButtons->hide();
+    if (actionButtonsBox)  actionButtonsBox->hide();
+    if (tableButtons)      tableButtons->hide();
+
+    //show login box again on logout
+    if (loginBox) loginBox->show();
 
     if (stacked) stacked->setCurrentIndex(0);
     if (roleLbl) roleLbl->setText("Logged out");
     if (usernameField) usernameField->clear();
 }
+
 
 
 //borrowing helpers
