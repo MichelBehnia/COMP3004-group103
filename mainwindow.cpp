@@ -647,8 +647,8 @@ bool MainWindow::patronHasHold(const Patron& p, const QUuid& id) const {
 void MainWindow::populateFictionTable() {
     if (auto* t = get<QTableWidget>(this, "fictionTableWidget")) {
         t->clear();
-        t->setColumnCount(6);
-        t->setHorizontalHeaderLabels({"Title", "Author", "Year", "Format", "Condition", "ISBN"});
+        t->setColumnCount(7);
+        t->setHorizontalHeaderLabels({"Title", "Author", "Year", "Format", "Condition", "ISBN", "Availability"});
         t->setRowCount(0);
         int row = 0;
         for (Item* item : catalogue) {
@@ -661,6 +661,8 @@ void MainWindow::populateFictionTable() {
                 t->setItem(row, 3, new QTableWidgetItem(fb->format));
                 t->setItem(row, 4, new QTableWidgetItem(condToString(fb->condition)));
                 t->setItem(row, 5, new QTableWidgetItem(fb->isbn));
+                t->setItem(row, 6, new QTableWidgetItem(statToString(fb->status)));
+
                 ++row;
             }
         }
@@ -671,8 +673,8 @@ void MainWindow::populateFictionTable() {
 void MainWindow::populateNonFictionTable() {
     if (auto* t = get<QTableWidget>(this, "nonFictionTableWidget")) {
         t->clear();
-        t->setColumnCount(7);
-        t->setHorizontalHeaderLabels({"Title", "Author", "Year", "Format", "Condition", "ISBN", "Dewey"});
+        t->setColumnCount(8);
+        t->setHorizontalHeaderLabels({"Title","Author","Year","Format","Condition","ISBN","Dewey","Availability"});
         t->setRowCount(0);
         int row = 0;
         for (Item* item : catalogue) {
@@ -686,6 +688,7 @@ void MainWindow::populateNonFictionTable() {
                 t->setItem(row, 4, new QTableWidgetItem(condToString(nf->condition)));
                 t->setItem(row, 5, new QTableWidgetItem(nf->isbn));
                 t->setItem(row, 6, new QTableWidgetItem(nf->deweyClass));
+                t->setItem(row, 7, new QTableWidgetItem(statToString(nf->status)));
                 ++row;
             }
         }
@@ -696,8 +699,8 @@ void MainWindow::populateNonFictionTable() {
 void MainWindow::populateMagazineTable() {
     if (auto* t = get<QTableWidget>(this, "magazineTableWidget")) {
         t->clear();
-        t->setColumnCount(7);
-        t->setHorizontalHeaderLabels({"Title", "Publisher", "Year", "Format", "Condition", "Issue", "Pub Date"});
+        t->setColumnCount(8);
+        t->setHorizontalHeaderLabels({"Title","Publisher","Year","Format","Condition","Issue","Pub Date","Availability"});
         t->setRowCount(0);
         int row = 0;
         for (Item* item : catalogue) {
@@ -711,6 +714,7 @@ void MainWindow::populateMagazineTable() {
                 t->setItem(row, 4, new QTableWidgetItem(condToString(mag->condition)));
                 t->setItem(row, 5, new QTableWidgetItem(QString::number(mag->issueNumber)));
                 t->setItem(row, 6, new QTableWidgetItem(mag->publicationDate.toString()));
+                t->setItem(row, 7, new QTableWidgetItem(statToString(mag->status)));
                 ++row;
             }
         }
@@ -721,8 +725,8 @@ void MainWindow::populateMagazineTable() {
 void MainWindow::populateMovieTable() {
     if (auto* t = get<QTableWidget>(this, "movieTableWidget")) {
         t->clear();
-        t->setColumnCount(7);
-        t->setHorizontalHeaderLabels({"Title", "Director", "Year", "Format", "Condition", "Genre", "Rating"});
+        t->setColumnCount(8);
+        t->setHorizontalHeaderLabels({"Title","Director","Year","Format","Condition","Genre","Rating","Availability"});
         t->setRowCount(0);
         int row = 0;
         for (Item* item : catalogue) {
@@ -736,6 +740,7 @@ void MainWindow::populateMovieTable() {
                 t->setItem(row, 4, new QTableWidgetItem(condToString(mov->condition)));
                 t->setItem(row, 5, new QTableWidgetItem(mov->genre));
                 t->setItem(row, 6, new QTableWidgetItem(QString::number(mov->rating)));
+                t->setItem(row, 7, new QTableWidgetItem(statToString(mov->status)));
                 ++row;
             }
         }
@@ -746,8 +751,8 @@ void MainWindow::populateMovieTable() {
 void MainWindow::populateVideoGameTable() {
     if (auto* t = get<QTableWidget>(this, "videoGameTableWidget")) {
         t->clear();
-        t->setColumnCount(7);
-        t->setHorizontalHeaderLabels({"Title", "Studio", "Year", "Format", "Condition", "Platform", "Genre"});
+        t->setColumnCount(8);
+        t->setHorizontalHeaderLabels({"Title","Studio","Year","Format","Condition","Platform","Genre","Availability"});
         t->setRowCount(0);
         int row = 0;
         for (Item* item : catalogue) {
@@ -761,6 +766,7 @@ void MainWindow::populateVideoGameTable() {
                 t->setItem(row, 4, new QTableWidgetItem(condToString(vg->condition)));
                 t->setItem(row, 5, new QTableWidgetItem(vg->platform));
                 t->setItem(row, 6, new QTableWidgetItem(vg->genre));
+                t->setItem(row, 7, new QTableWidgetItem(statToString(vg->status)));
                 ++row;
             }
         }
