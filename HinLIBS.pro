@@ -4,21 +4,40 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++11
 
-# You can make your code fail to compile if it uses deprecated APIs.
-# In order to do so, uncomment the following line.
-#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
-
 SOURCES += \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    Item.cpp \
+    FictionBook.cpp \
+    NonFictionBook.cpp \
+    Magazine.cpp \
+    Movie.cpp \
+    VideoGame.cpp \
+    User.cpp \
+    LibraryService.cpp \
+    UserService.cpp \
+    LoanService.cpp \
+    HoldService.cpp \
+    DatabaseManager.cpp
 
 HEADERS += \
-    mainwindow.h
+    mainwindow.h \
+    Item.h \
+    FictionBook.h \
+    NonFictionBook.h \
+    Magazine.h \
+    Movie.h \
+    VideoGame.h \
+    User.h \
+    LibraryService.h \
+    UserService.h \
+    LoanService.h \
+    HoldService.h \
+    DatabaseManager.h
 
 FORMS += \
     mainwindow.ui
 
-# Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
