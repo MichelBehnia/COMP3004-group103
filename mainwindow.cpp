@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "ReturnOnBehalfDialog.h"
 #include <QMessageBox>
 #include <QLabel>
 #include <QPushButton>
@@ -122,6 +123,12 @@ void MainWindow::setupLoginHandling() {
 
             auto* roleLbl = get<QLabel>(this, "userRoleLabel");
 
+            if (role == "Librarian") {
+                ui->returnOnBehalfButton->show();
+            } else {
+                ui->returnOnBehalfButton->hide();
+            }
+
             if (role == "Invalid") {
                 if (roleLbl) roleLbl->setText("Invalid username");
                 return;
@@ -187,6 +194,22 @@ void MainWindow::on_accountStatusButton_clicked() {
 
 void MainWindow::accountStatusActionTriggered() {
     showAccountStatusPage();
+}
+
+void MainWindow::on_returnOnBehalfButton_clicked()
+{
+    ReturnOnBehalfDialog dialog(userService, libraryService, loanService, this);
+
+    // Run dialog modally
+    dialog.exec();
+
+    // After closing the dialog, refresh everything
+    refreshAllTables();
+
+    // If account page is visible, refresh it too
+    if (ui->stackedWidget->currentWidget() == ui->accountPage) {
+        populateAccountStatus();
+    }
 }
 
 void MainWindow::on_backFromAccountButton_clicked() {

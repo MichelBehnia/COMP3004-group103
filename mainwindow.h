@@ -31,6 +31,9 @@ private slots:
     void accountStatusActionTriggered();
     void on_backFromAccountButton_clicked();
 
+    //Return on Behalf
+    void on_returnOnBehalfButton_clicked();
+
     // Borrow
     void on_borrowSelectedButton_clicked();
 

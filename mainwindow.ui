@@ -364,7 +364,7 @@
      <rect>
       <x>640</x>
       <y>50</y>
-      <width>501</width>
+      <width>650</width>
       <height>41</height>
      </rect>
     </property>
@@ -411,6 +411,19 @@
      </property>
      <property name="text">
       <string>Cancel Hold</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="returnOnBehalfButton">
+     <property name="geometry">
+      <rect>
+       <x>500</x>
+       <y>10</y>
+       <width>131</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Return on Behalf</string>
      </property>
     </widget>
     <widget class="QPushButton" name="unborrowSelectedButton">
