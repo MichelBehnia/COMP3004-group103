@@ -12,28 +12,8 @@ void UserService::loadUsers() {
     systemAdmins = DatabaseManager::instance().loadAllSystemAdmins();
 }
 
-// Validates the username and returns the user's role (Patron, Librarian, SystemAdmin, or Invalid)
+// Validates the username and returns the users role (Patron, Librarian, SystemAdmin, or Invalid)
 Patron* UserService::authenticateUser(const QString& username, QString& role) {
-
-    // 1. Check Librarians FIRST — they MUST NOT be treated as patrons
-    for (const Librarian& l : librarians) {
-        if (l.name == username) {
-            role = "Librarian";
-            currentPatronIndex = -1;  // librarians are not patrons
-            return nullptr;           // return no Patron*
-        }
-    }
-
-    // 2. Check System Admins
-    for (const SystemAdmin& a : systemAdmins) {
-        if (a.name == username) {
-            role = "Admin";
-            currentPatronIndex = -1;
-            return nullptr;
-        }
-    }
-
-    // 3. Check Patrons
     for (int i = 0; i < patrons.size(); ++i) {
         if (patrons[i].name == username) {
             role = "Patron";
@@ -42,9 +22,33 @@ Patron* UserService::authenticateUser(const QString& username, QString& role) {
         }
     }
 
-    // 4. Invalid username
+    for (const Librarian& l : librarians) {
+        if (l.name == username) {
+            role = "Librarian";
+            int idx = -1;
+            for (int i = 0; i < patrons.size(); ++i) {
+                if (patrons[i].name == username) {
+                    idx = i;
+                    break;
+                }
+            }
+            if (idx == -1) {
+                patrons.append(Patron(username));
+                idx = patrons.size() - 1;
+            }
+            currentPatronIndex = idx;
+            return &patrons[idx];
+        }
+    }
+
+    for (const SystemAdmin& a : systemAdmins) {
+        if (a.name == username) {
+            role = "Admin";
+            return nullptr;
+        }
+    }
+
     role = "Invalid";
-    currentPatronIndex = -1;
     return nullptr;
 }
 

@@ -1,6 +1,5 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "ReturnOnBehalfDialog.h"
 #include <QMessageBox>
 #include <QLabel>
 #include <QPushButton>
@@ -63,6 +62,10 @@ MainWindow::~MainWindow() {
 
 // Connects all UI buttons and actions to their corresponding slot functions for user interaction
 void MainWindow::setupConnections() {
+    //Item type combo box index to form page
+    connect(ui->itemTypeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            ui->itemTypeFormPage, &QStackedWidget::setCurrentIndex);
+
     // Account page unborrow button
     connect(ui->unborrowSelectedButton_account, &QPushButton::clicked,
             this, &MainWindow::on_unborrowSelectedButton_clicked);
@@ -78,6 +81,12 @@ void MainWindow::setupConnections() {
         connect(a, &QAction::triggered, this, &MainWindow::unborrowActionTriggered, Qt::UniqueConnection);
     if (auto* b = get<QPushButton>(this, "backFromAccountButton"))
         connect(b, &QPushButton::clicked, this, &MainWindow::on_backFromAccountButton_clicked, Qt::UniqueConnection);
+
+    // Manage catalogue hooks
+    if (auto* b = get<QPushButton>(this, "manageCatalogueButton"))
+        connect(b, &QPushButton::clicked, this, &MainWindow::on_manageCatalogueButton_clicked, Qt::UniqueConnection);
+    if (auto* b = get<QPushButton>(this, "backFromManageCatalogueButton"))
+        connect(b, &QPushButton::clicked, this, &MainWindow::on_backFromManageCatalogueButton_clicked, Qt::UniqueConnection);
 
     // Page navigation buttons
     auto* stacked = get<QStackedWidget>(this, "stackedWidget");
@@ -123,25 +132,25 @@ void MainWindow::setupLoginHandling() {
 
             auto* roleLbl = get<QLabel>(this, "userRoleLabel");
 
-            if (role == "Librarian") {
-                ui->returnOnBehalfButton->show();
-            } else {
-                ui->returnOnBehalfButton->hide();
-            }
-
             if (role == "Invalid") {
                 if (roleLbl) roleLbl->setText("Invalid username");
                 return;
             }
 
             QString displayRole = role;
-            if (role == "Librarian") displayRole = "Librarian / Patron";
+            if (role == "Librarian"){
+                displayRole = "Librarian / Patron";
+            }
             if (roleLbl) roleLbl->setText(username + ": " + displayRole);
 
             auto* accountButtonsBox = get<QGroupBox>(this, "accountButtonsGroupBox");
             auto* actionButtonsBox = get<QGroupBox>(this, "actionButtonsGroupBox");
             auto* tableButtonsBox = get<QGroupBox>(this, "tableButtonGroupBox");
             auto* accountStatusBtn = get<QPushButton>(this, "accountStatusButton");
+            auto* manageCatalogueButton = get<QPushButton>(this, "manageCatalogueButton");
+            auto* addItemButton = get<QPushButton>(this, "addItemButton");
+            auto* removeItemButton = get<QPushButton>(this, "removeItemButton");
+
 
             // Admin: only show logout
             if (role == "Admin") {
@@ -154,6 +163,17 @@ void MainWindow::setupLoginHandling() {
                 if (stacked) stacked->setCurrentIndex(0);
                 statusBar()->showMessage("Admin features coming in D2.", 3000);
                 return;
+            }
+
+            //If role is not librarian, hide librarian features
+            if (role != "Librarian"){
+                if (removeItemButton) removeItemButton->hide();
+                if (manageCatalogueButton) manageCatalogueButton->hide();
+                if (addItemButton) addItemButton->hide();
+            } else {
+                if (removeItemButton) removeItemButton->show();
+                if (manageCatalogueButton) manageCatalogueButton->show();
+                if (addItemButton) addItemButton->hide();
             }
 
             // Patron/Librarian: show full functionality
@@ -174,13 +194,49 @@ void MainWindow::showLoginScreen() {
     auto* accountButtonsBox = get<QGroupBox>(this, "accountButtonsGroupBox");
     auto* actionButtonsBox = get<QGroupBox>(this, "actionButtonsGroupBox");
     auto* tableButtonsBox = get<QGroupBox>(this, "tableButtonGroupBox");
+    auto* manageCatalogueButton = get<QPushButton>(this, "manageCatalogueButton");
+    auto* removeItemButton = get<QPushButton>(this, "removeItemButton");
+    auto* addItemButton = get<QPushButton>(this, "addItemButton");
 
     if (accountButtonsBox) accountButtonsBox->hide();
     if (actionButtonsBox) actionButtonsBox->hide();
     if (tableButtonsBox) tableButtonsBox->hide();
+    if (manageCatalogueButton) manageCatalogueButton->hide();
+    if (removeItemButton) removeItemButton->hide();
+    if (addItemButton) addItemButton->hide();
 
     auto* stacked = get<QStackedWidget>(this, "stackedWidget");
     if (stacked) stacked->setCurrentIndex(0);
+}
+
+//Manage Catalogue Page Slots
+void MainWindow::on_manageCatalogueButton_clicked() {
+    showManageCataloguePage();
+    auto* actionButtonsBox = get<QGroupBox>(this, "actionButtonsGroupBox");
+    auto* tableButtonsBox = get<QGroupBox>(this, "tableButtonGroupBox");
+    auto* addItemButton = get<QPushButton>(this, "addItemButton");
+    auto* removeItemButton = get<QPushButton>(this, "removeItemButton");
+    auto* manageCatalogueButton = get<QPushButton>(this, "manageCatalogueButton");
+    if (actionButtonsBox) actionButtonsBox->hide();
+    if (tableButtonsBox) tableButtonsBox->hide();
+    if (addItemButton) addItemButton->show();
+    if (removeItemButton) removeItemButton->hide();
+    if (manageCatalogueButton) manageCatalogueButton->hide();
+}
+
+void MainWindow::on_backFromManageCatalogueButton_clicked() {
+    if (auto* stacked = get<QStackedWidget>(this, "stackedWidget"))
+        stacked->setCurrentIndex(1);
+    auto* actionButtonsBox = get<QGroupBox>(this, "actionButtonsGroupBox");
+    auto* tableButtonsBox = get<QGroupBox>(this, "tableButtonGroupBox");
+    auto* addItemButton = get<QPushButton>(this, "addItemButton");
+    auto* removeItemButton = get<QPushButton>(this, "removeItemButton");
+    auto* manageCatalogueButton = get<QPushButton>(this, "manageCatalogueButton");
+    if (actionButtonsBox) actionButtonsBox->show();
+    if (tableButtonsBox) tableButtonsBox->show();
+    if (addItemButton) addItemButton->hide();
+    if (removeItemButton) removeItemButton->show();
+    if (manageCatalogueButton) manageCatalogueButton->show();
 }
 
 // Account Status Slots
@@ -196,29 +252,16 @@ void MainWindow::accountStatusActionTriggered() {
     showAccountStatusPage();
 }
 
-void MainWindow::on_returnOnBehalfButton_clicked()
-{
-    ReturnOnBehalfDialog dialog(userService, libraryService, loanService, this);
-
-    // Run dialog modally
-    dialog.exec();
-
-    // After closing the dialog, refresh everything
-    refreshAllTables();
-
-    // If account page is visible, refresh it too
-    if (ui->stackedWidget->currentWidget() == ui->accountPage) {
-        populateAccountStatus();
-    }
-}
-
 void MainWindow::on_backFromAccountButton_clicked() {
     if (auto* stacked = get<QStackedWidget>(this, "stackedWidget"))
         stacked->setCurrentIndex(1);
     auto* actionButtonsBox = get<QGroupBox>(this, "actionButtonsGroupBox");
     auto* tableButtonsBox = get<QGroupBox>(this, "tableButtonGroupBox");
+    auto* addItemButton = get<QPushButton>(this, "addItemButton");
     if (actionButtonsBox) actionButtonsBox->show();
     if (tableButtonsBox) tableButtonsBox->show();
+    if (addItemButton) addItemButton->hide();
+
 }
 
 // Borrow button slot
@@ -305,6 +348,164 @@ void MainWindow::on_cancelHoldButton_clicked() {
     statusBar()->showMessage(result.msg, 3000);
 }
 
+
+void MainWindow::on_addItemButton_clicked()
+{
+    QString title = ui->titleLineEdit->text().trimmed();
+    QString creator = ui->creatorLineEdit->text().trimmed();
+    int year = ui->yearSpinBox->value();
+    QString format = ui->formatLineEdit->text().trimmed();
+
+    // Basic validation
+    if (title.isEmpty()) {
+        QMessageBox::warning(this, "Input Error", "Title cannot be empty.");
+        return;
+    }
+    if (creator.isEmpty()) {
+        QMessageBox::warning(this, "Input Error", "Creator cannot be empty.");
+        return;
+    }
+    if (format.isEmpty()) {
+        QMessageBox::warning(this, "Input Error", "Format cannot be empty.");
+        return;
+    }
+    if (year <= 0) {
+        QMessageBox::warning(this, "Input Error", "Year must be a positive number.");
+        return;
+    }
+
+    // Convert condition
+    ItemCondition condition;
+    QString condText = ui->conditionComboBox->currentText();
+
+    if (condText == "New")
+        condition = ItemCondition::New;
+    else if (condText == "Standard")
+        condition = ItemCondition::Standard;
+    else if (condText == "Worn")
+        condition = ItemCondition::Worn;
+    else {
+        QMessageBox::warning(this, "Input Error", "Invalid item condition.");
+        return;
+    }
+
+    int currentPage = ui->itemTypeFormPage->currentIndex();
+    Item* item = nullptr;
+
+    // Item-specific validation + construction
+    try {
+        if (currentPage == 0) {  // Fiction Book
+            QString isbnNum = ui->isbnNumLineEdit->text().trimmed();
+            if (isbnNum.isEmpty()) {
+                QMessageBox::warning(this, "Input Error", "ISBN Number cannot be empty.");
+                return;
+            }
+            item = new FictionBook(title, creator, year, format, condition, isbnNum);
+        }
+        else if (currentPage == 1) { // Non-Fiction Book
+            QString isbnNum = ui->isbnNumLineEdit->text().trimmed();
+            QString deweyClass = ui->deweyClassLineEdit->text().trimmed();
+            if (isbnNum.isEmpty() || deweyClass.isEmpty()) {
+                QMessageBox::warning(this, "Input Error",
+                                     "ISBN Number and Dewey Classification cannot be empty.");
+                return;
+            }
+            item = new NonFictionBook(title, creator, year, format, condition,
+                                      isbnNum, deweyClass);
+        }
+        else if (currentPage == 2) { // Video Game
+            QString platform = ui->platformLineEdit->text().trimmed();
+            QString genre = ui->genreLineEdit->text().trimmed();
+            int rating = ui->ratingSpinBox->value();
+
+            if (platform.isEmpty() || genre.isEmpty()) {
+                QMessageBox::warning(this, "Input Error",
+                                     "Platform and Genre cannot be empty.");
+                return;
+            }
+
+            if (rating < 0 || rating > 10) {
+                QMessageBox::warning(this, "Input Error",
+                                     "Rating must be between 0 and 10.");
+                return;
+            }
+
+            item = new VideoGame(title, creator, year, format, condition,
+                                 platform, genre, rating);
+        }
+        else if (currentPage == 3) { // Magazine
+            int issueNum = ui->issueNumSpinBox->value();
+            QDate pubDate = ui->pubDateDateEdit->date();
+
+            if (issueNum <= 0) {
+                QMessageBox::warning(this, "Input Error",
+                                     "Issue number must be greater than 0.");
+                return;
+            }
+            if (!pubDate.isValid()) {
+                QMessageBox::warning(this, "Input Error",
+                                     "Publication date is invalid.");
+                return;
+            }
+
+            item = new Magazine(title, creator, year, format, condition,
+                                issueNum, pubDate);
+        }
+        else if (currentPage == 4) { // Movie
+            QString genre = ui->genreLineEdit->text().trimmed();
+            int rating = ui->ratingSpinBox->value();
+
+            if (genre.isEmpty()) {
+                QMessageBox::warning(this, "Input Error", "Genre cannot be empty.");
+                return;
+            }
+            if (rating < 0 || rating > 10) {
+                QMessageBox::warning(this, "Input Error",
+                                     "Rating must be between 0 and 10.");
+                return;
+            }
+
+            item = new Movie(title, creator, year, format, condition,
+                             genre, rating);
+        }
+        else {
+            QMessageBox::critical(this, "Error", "Unknown item type selected.");
+            return;
+        }
+    }
+    catch (...) {
+        QMessageBox::critical(this, "Error",
+                              "An unexpected error occurred while creating the item.");
+        return;
+    }
+
+    // Add item to library
+    try {
+        libraryService->addItem(item);
+        libraryService->reloadCatalogue();
+        refreshAllTables();
+        QMessageBox::information(this, "Success", "Item added successfully!");
+    }
+    catch (...) {
+        QMessageBox::critical(this, "Library Error",
+                              "Failed to add the item to the library.");
+        delete item; // Prevent memory leak
+    }
+}
+
+
+
+//Remove item button clicked
+// Remove item button slot
+void MainWindow::on_removeItemButton_clicked() {
+    if (QTableWidget* t = currentTable()) {
+        int row = t->currentRow();
+        if (row >= 0) removeFromRow(t, row);
+    }
+}
+
+
+
 // Logout slot
 void MainWindow::on_logoutButton_clicked() {
     auto* stacked = get<QStackedWidget>(this, "stackedWidget");
@@ -314,10 +515,16 @@ void MainWindow::on_logoutButton_clicked() {
     auto* accountButtonsBox = get<QGroupBox>(this, "accountButtonsGroupBox");
     auto* actionButtonsBox = get<QGroupBox>(this, "actionButtonsGroupBox");
     auto* loginBox = get<QGroupBox>(this, "loginGroupBox");
+    auto* manageCatalogueButton = get<QPushButton>(this, "manageCatalogueButton");
+    auto* addItemButton = get<QPushButton>(this, "addItemButton");
+    auto* removeItemButton = get<QPushButton>(this, "removeItemButton");
 
     if (accountButtonsBox) accountButtonsBox->hide();
     if (actionButtonsBox) actionButtonsBox->hide();
     if (tableButtons) tableButtons->hide();
+    if (manageCatalogueButton) manageCatalogueButton->hide();
+    if (addItemButton) addItemButton->hide();
+    if (removeItemButton) removeItemButton->hide();
 
     if (loginBox) loginBox->show();
     if (stacked) stacked->setCurrentIndex(0);
@@ -347,6 +554,21 @@ QUuid MainWindow::idForRow(QTableWidget* table, int row) const {
     if (!it) return {};
     const QString idStr = it->data(Qt::UserRole).toString();
     return QUuid(idStr);
+}
+
+//
+void MainWindow::removeFromRow(QTableWidget* table, int row) {
+    if (!table) return;
+
+    const QUuid id = idForRow(table, row);
+    if (id.isNull()) return;
+
+    bool result = libraryService->removeItem(id);
+
+    refreshAllTables();
+
+    if (result) statusBar()->showMessage("Item successfully removed", 3000);
+    if (row >= 0 && row < table->rowCount()) table->setCurrentCell(row, 0);
 }
 
 // Initiates a borrow action for the item at the specified table row
@@ -382,6 +604,15 @@ void MainWindow::returnFromRow(QTableWidget* table, int row) {
     if (!result.msg.isEmpty()) statusBar()->showMessage(result.msg, 3000);
     if (row >= 0 && row < table->rowCount())
         table->setCurrentCell(std::min(row, table->rowCount() - 1), 0);
+}
+
+void MainWindow::showManageCataloguePage() {
+    auto* stacked = get<QStackedWidget>(this, "stackedWidget");
+    QWidget* manageCataloguePage = get<QWidget>(this, "manageCataloguePage");
+    if (stacked && manageCataloguePage) {
+        int idx = stacked->indexOf(manageCataloguePage);
+        if (idx >= 0) stacked->setCurrentIndex(idx);
+    }
 }
 
 // Navigates to the account status page showing the patrons loans, holds, and fines

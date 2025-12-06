@@ -115,7 +115,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>5</number>
+     <number>7</number>
     </property>
     <widget class="QWidget" name="page">
      <widget class="QGroupBox" name="loginGroupBox">
@@ -271,7 +271,6 @@
        <string>Unborrow Selected</string>
       </property>
      </widget>
-
      <widget class="QPushButton" name="cancelHoldButton_account">
       <property name="geometry">
        <rect>
@@ -358,13 +357,382 @@
       </property>
      </widget>
     </widget>
+    <widget class="QWidget" name="manageCataloguePage">
+     <widget class="QStackedWidget" name="formStackedWidget">
+      <property name="geometry">
+       <rect>
+        <x>250</x>
+        <y>0</y>
+        <width>261</width>
+        <height>321</height>
+       </rect>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="formStackedWidget_2Page1" native="true">
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="creatorLineEdit"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="titleLabel">
+          <property name="text">
+           <string>Title</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="conditionLabel">
+          <property name="text">
+           <string>Condition</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="itemTypeComboBox">
+          <item>
+           <property name="text">
+            <string>Fiction Book</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Non-Fiction Book</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Video Game</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Magazine</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Movie</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="creatorLabel">
+          <property name="text">
+           <string>Creator</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0">
+         <widget class="QLabel" name="itemTypeLabel">
+          <property name="text">
+           <string>Item Type</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLineEdit" name="titleLineEdit">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="formatLabel">
+          <property name="text">
+           <string>Format</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="yearLabel">
+          <property name="text">
+           <string>Year</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QSpinBox" name="yearSpinBox"/>
+        </item>
+        <item row="5" column="1">
+         <widget class="QComboBox" name="conditionComboBox">
+          <item>
+           <property name="text">
+            <string>New</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Standard</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Worn</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="6" column="0" colspan="2">
+         <widget class="QStackedWidget" name="itemTypeFormPage">
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <widget class="QWidget" name="fictionBookFormPage">
+           <widget class="QWidget" name="formLayoutWidget_2">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>261</width>
+              <height>101</height>
+             </rect>
+            </property>
+            <layout class="QFormLayout" name="formLayout_2">
+             <item row="0" column="0">
+              <widget class="QLabel" name="isbnNumLabel">
+               <property name="text">
+                <string>ISBN #</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="isbnNumLineEdit"/>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+          <widget class="QWidget" name="nonFictionBookFormPage">
+           <widget class="QWidget" name="formLayoutWidget_3">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>261</width>
+              <height>101</height>
+             </rect>
+            </property>
+            <layout class="QFormLayout" name="formLayout_6">
+             <item row="0" column="0">
+              <widget class="QLabel" name="isbnNumLabel_2">
+               <property name="text">
+                <string>ISBN #</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="isbnNumLineEdit_2"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="deweyClassLabel">
+               <property name="text">
+                <string>Dewey Class</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="deweyClassLineEdit"/>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+          <widget class="QWidget" name="videoGameFormPage">
+           <widget class="QWidget" name="formLayoutWidget_4">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>261</width>
+              <height>131</height>
+             </rect>
+            </property>
+            <layout class="QFormLayout" name="formLayout_7">
+             <item row="0" column="0">
+              <widget class="QLabel" name="platformLabel">
+               <property name="text">
+                <string>Platform  </string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="platformLineEdit"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="studioLabel">
+               <property name="text">
+                <string>Studio</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="studioLineEdit"/>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="ratingLabel">
+               <property name="text">
+                <string>Rating</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLabel" name="genreLabel">
+               <property name="text">
+                <string>Genre</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QLineEdit" name="genreLineEdit"/>
+             </item>
+             <item row="2" column="1">
+              <widget class="QSpinBox" name="ratingSpinBox"/>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+          <widget class="QWidget" name="magazineFormPage">
+           <widget class="QWidget" name="formLayoutWidget_5">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>261</width>
+              <height>151</height>
+             </rect>
+            </property>
+            <layout class="QFormLayout" name="formLayout_8">
+             <item row="0" column="0">
+              <widget class="QLabel" name="publisherLabel">
+               <property name="text">
+                <string>Publisher</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="publisherLineEdit"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="issueNumLabel">
+               <property name="text">
+                <string>Issue #</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QSpinBox" name="issueNumSpinBox"/>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="pubDateLabel">
+               <property name="text">
+                <string>Pub Date</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QDateEdit" name="pubDateDateEdit">
+               <property name="dateTime">
+                <datetime>
+                 <hour>0</hour>
+                 <minute>0</minute>
+                 <second>0</second>
+                 <year>2025</year>
+                 <month>1</month>
+                 <day>1</day>
+                </datetime>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+          <widget class="QWidget" name="movieFormPage">
+           <widget class="QWidget" name="formLayoutWidget_6">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>261</width>
+              <height>141</height>
+             </rect>
+            </property>
+            <layout class="QFormLayout" name="formLayout_9">
+             <item row="0" column="0">
+              <widget class="QLabel" name="directorLabel">
+               <property name="text">
+                <string>Director  </string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="directorLineEdit"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="genreLabel_2">
+               <property name="text">
+                <string>Genre</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="genreLineEdit_2"/>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="ratingLabel_2">
+               <property name="text">
+                <string>Rating</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QLineEdit" name="ratingLineEdit_2"/>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLineEdit" name="formatLineEdit"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="page_25">
+       <widget class="QWidget" name="formLayoutWidget">
+        <property name="geometry">
+         <rect>
+          <x>40</x>
+          <y>0</y>
+          <width>160</width>
+          <height>80</height>
+         </rect>
+        </property>
+        <layout class="QFormLayout" name="formLayout"/>
+       </widget>
+      </widget>
+     </widget>
+     <widget class="QPushButton" name="backFromManageCatalogueButton">
+      <property name="geometry">
+       <rect>
+        <x>1030</x>
+        <y>10</y>
+        <width>83</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Back</string>
+      </property>
+     </widget>
+    </widget>
    </widget>
    <widget class="QGroupBox" name="actionButtonsGroupBox">
     <property name="geometry">
      <rect>
       <x>640</x>
       <y>50</y>
-      <width>650</width>
+      <width>501</width>
       <height>41</height>
      </rect>
     </property>
@@ -411,19 +779,6 @@
      </property>
      <property name="text">
       <string>Cancel Hold</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="returnOnBehalfButton">
-     <property name="geometry">
-      <rect>
-       <x>500</x>
-       <y>10</y>
-       <width>131</width>
-       <height>25</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Return on Behalf</string>
      </property>
     </widget>
     <widget class="QPushButton" name="unborrowSelectedButton">
@@ -481,6 +836,45 @@
       <string>Log Out</string>
      </property>
     </widget>
+   </widget>
+   <widget class="QPushButton" name="addItemButton">
+    <property name="geometry">
+     <rect>
+      <x>100</x>
+      <y>20</y>
+      <width>91</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Add Item</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="removeItemButton">
+    <property name="geometry">
+     <rect>
+      <x>100</x>
+      <y>20</y>
+      <width>101</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Remove Item</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="manageCatalogueButton">
+    <property name="geometry">
+     <rect>
+      <x>952</x>
+      <y>10</y>
+      <width>131</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Add to Catalogue</string>
+    </property>
    </widget>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>

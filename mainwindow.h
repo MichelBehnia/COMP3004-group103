@@ -31,8 +31,9 @@ private slots:
     void accountStatusActionTriggered();
     void on_backFromAccountButton_clicked();
 
-    //Return on Behalf
-    void on_returnOnBehalfButton_clicked();
+    //Manage catalogue page entry
+    void on_manageCatalogueButton_clicked();
+    void on_backFromManageCatalogueButton_clicked();
 
     // Borrow
     void on_borrowSelectedButton_clicked();
@@ -44,6 +45,10 @@ private slots:
     // Return
     void on_unborrowSelectedButton_clicked();
     void unborrowActionTriggered();
+
+    //Librarian functionality (add/remove item from catalogue)
+    void on_addItemButton_clicked();
+    void on_removeItemButton_clicked();
 
     // Logout
     void on_logoutButton_clicked();
@@ -61,6 +66,9 @@ private:
     QTableWidget* currentTable() const;
     QUuid idForRow(QTableWidget* table, int row) const;
 
+    //Remove item helper
+    void removeFromRow(QTableWidget* table, int row);
+
     // Borrowing helper
     void borrowFromRow(QTableWidget* table, int row);
 
@@ -75,6 +83,9 @@ private:
     void populateMovieTable();
     void populateVideoGameTable();
     void refreshAllTables();
+
+    //Manage Catalogue Page
+    void showManageCataloguePage();
 
     // Account page
     void showAccountStatusPage();
