@@ -18,9 +18,7 @@ SOURCES += \
     UserService.cpp \
     LoanService.cpp \
     HoldService.cpp \
-    DatabaseManager.cpp \
-    ReturnOnBehalfDialog.cpp
-
+    DatabaseManager.cpp
 
 HEADERS += \
     mainwindow.h \
@@ -35,8 +33,7 @@ HEADERS += \
     UserService.h \
     LoanService.h \
     HoldService.h \
-    DatabaseManager.h \
-    ReturnOnBehalfDialog.h
+    DatabaseManager.h
 
 FORMS += \
     mainwindow.ui
